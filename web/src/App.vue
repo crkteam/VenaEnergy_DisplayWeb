@@ -1,23 +1,20 @@
 <template>
-  <div>123</div>
+  <BottomLayer />
 </template>
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import BottomLayer from "@/component/bottomLayer/BottomLayer.vue";
 
 export default defineComponent({
   name: "App",
-  components: {},
+  components: { BottomLayer },
 });
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+#ve-app {
+  width: 100%;
+  height: 100%;
 }
 </style>
