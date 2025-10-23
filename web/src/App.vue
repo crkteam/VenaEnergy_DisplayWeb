@@ -1,12 +1,13 @@
 <template>
-  <div class="relative w-full h-full">
-    <!--  Top  -->
-    <TopLayer class="absolute top-0 left-0 z-10" />
-    <!--  Bottom  -->
-    <BottomLayer class="absolute top-0 left-0 z-0" />
+  <div class="relative w-full h-full overflow-hidden">
+    <!-- Bottom -->
+    <BottomLayer class="absolute top-0 left-0 w-full h-full z-0" />
+    <!-- Top -->
+    <TopLayer
+      class="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"
+    />
   </div>
 </template>
-
 <script lang="ts">
 import { defineComponent } from "vue";
 import BottomLayer from "@/component/bottom-layer/BottomLayer.vue";
@@ -20,7 +21,7 @@ export default defineComponent({
 
 <style>
 #ve-app {
-  width: 100%;
   height: 100%;
+  aspect-ratio: 1240/782;
 }
 </style>
