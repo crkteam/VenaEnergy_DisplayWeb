@@ -22,6 +22,6 @@ export default defineComponent({
 <style>
 #ve-app {
   height: 100%;
-  aspect-ratio: 1240/782;
+  aspect-ratio: 1240/758;
 }
 </style>

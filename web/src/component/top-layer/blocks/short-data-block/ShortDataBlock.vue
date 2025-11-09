@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute top-[2.5vh] right-[2.5vh] w-[30%] h-[25%] p-[1.5vh] bg-gradient-to-b from-[#9FBFD3]/30 to-[#94A1BF]/30 rounded-[1.5vh]"
+    class="absolute top-[2.5vh] right-[2.5vh] w-[30%] h-[25%] p-[1.5vh] bg-white/65 rounded-[1.5vh]"
   >
     <!-- 網格容器 2x2 -->
     <div class="grid grid-cols-2 grid-rows-2 gap-[1.5vh] h-full">

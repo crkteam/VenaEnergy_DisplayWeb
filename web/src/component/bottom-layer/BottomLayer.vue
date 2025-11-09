@@ -53,22 +53,22 @@ const areaConfigs: AreaConfig[] = [
   {
     type: "A",
     position: new Vector3(-2.5, 0, -1.5),
-    cameraPosition: new Vector3(-0.5, 4.5, 7.5),
+    cameraPosition: new Vector3(0, 4.5, 5),
   },
   {
     type: "B",
     position: new Vector3(-2.5, 0, 4.5),
-    cameraPosition: new Vector3(-2.5, 6.5, 12),
+    cameraPosition: new Vector3(0, 4.5, 11),
   },
   {
     type: "C",
     position: new Vector3(4, 0, -1.5),
-    cameraPosition: new Vector3(4, 6.5, 8),
+    cameraPosition: new Vector3(6.5, 4.5, 5),
   },
   {
     type: "D",
     position: new Vector3(5, 0, 4.5),
-    cameraPosition: new Vector3(5, 6.5, 12),
+    cameraPosition: new Vector3(7.5, 4.5, 11),
   },
 ];
 

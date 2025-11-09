@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute p-[1.25%] top-[3%] left-[1.6%] w-[19.5%] h-[17%] bg-[#fafafa50] backdrop-blur-sm rounded-xl flex flex-row justify-between"
+    class="absolute p-[1.5%] top-[3%] left-[1.6%] w-[24%] h-[20%] bg-[#fafafa] backdrop-blur-sm rounded-xl flex flex-row justify-between"
   >
     <!-- 左邊 -->
     <div class="flex flex-col justify-between">
