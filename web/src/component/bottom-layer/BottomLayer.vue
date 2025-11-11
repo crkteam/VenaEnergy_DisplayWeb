@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, defineEmits } from "vue";
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
 import { ObjectCreator } from "@/component/bottom-layer/object-creator";
@@ -20,6 +20,12 @@ interface AreaConfig {
   position: Vector3;
   cameraPosition: Vector3;
 }
+
+// 定義 emits
+const emit = defineEmits<{
+  (e: "lock-camera", areaType: string): void;
+  (e: "unlock-camera"): void;
+}>();
 
 const container = ref<HTMLDivElement | null>(null);
 
@@ -235,7 +241,6 @@ const onMouseClick = (event: MouseEvent) => {
 
 const handleObjectClick = (object: THREE.Object3D) => {
   const areaType = object.userData.type as string;
-  console.log("點擊了:", areaType);
 
   // 鎖定到該 area
   lockCameraToArea(areaType);
@@ -277,7 +282,7 @@ const lockCameraToArea = (areaType: string) => {
     ease: "power2.inOut",
   });
 
-  console.log(`相機鎖定到 Area ${areaType}`);
+  emit("lock-camera", areaType);
 };
 
 const unlockCamera = () => {
@@ -305,7 +310,7 @@ const unlockCamera = () => {
     ease: "power2.inOut",
   });
 
-  console.log("相機解鎖,恢復到初始視角");
+  emit("unlock-camera");
 };
 
 // 按 ESC 鍵解鎖相機

@@ -13,7 +13,7 @@
     </div>
     <div class="flex flex-row items-center gap-[0.5vh]">
       <div class="font-bold text-[2.15vh] text-black/80">287</div>
-      <div class="text-[1.4vh] text-black/40">(kW)</div>
+      <div class="text-[1.35vh] text-black/40">(kW)</div>
     </div>
   </div>
 </template>
