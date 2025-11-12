@@ -1,126 +1,80 @@
 <template>
   <div
-    class="pointer-events-auto absolute left-[1.9%] w-[84.5%] h-[26.8%] rounded-[1.5vh] bg-gradient-to-b from-[#9FBFD3]/30 to-[#94A1BF]/30 backdrop-blur-[0.25vh] p-[1vh]"
+    class="pointer-events-auto absolute flex flex-col justify-between p-[1vh] left-[1.9%] w-[84.5%] h-[27.7%] rounded-[1.5vh] bg-white/65 backdrop-blur-[0.25vh]"
     :style="{ bottom: `${bottom}%` }"
   >
     <!-- 控制選項 -->
-    <div class="flex items-center gap-[2vh] mb-[1vh] text-white text-[1.4vh]">
-      <!-- 時間刻度切換 -->
-      <div
-        class="flex items-center gap-[0.5vh] bg-white/10 rounded-[0.5vh] px-[1vh] py-[0.5vh]"
-      >
-        <button
-          @click="timeScale = 'day'"
-          :class="[
-            'px-[1vh] py-[0.3vh] rounded-[0.3vh] transition-colors',
-            timeScale === 'day'
-              ? 'bg-[#5BC4D4] text-white'
-              : 'text-white/60 hover:text-white',
-          ]"
-        >
-          日
-        </button>
-        <button
-          @click="timeScale = 'year'"
-          :class="[
-            'px-[1vh] py-[0.3vh] rounded-[0.3vh] transition-colors',
-            timeScale === 'year'
-              ? 'bg-[#5BC4D4] text-white'
-              : 'text-white/60 hover:text-white',
-          ]"
-        >
-          年
-        </button>
-      </div>
-
-      <!-- 數據開關 -->
-      <div class="flex items-center gap-[1.5vh]">
-        <label
-          class="flex items-center gap-[0.5vh] cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          <input
-            type="checkbox"
-            v-model="dataVisibility.todayGeneration"
-            class="w-[1.5vh] h-[1.5vh] accent-[#5BC4D4]"
-          />
-          <span>今日發電量</span>
-        </label>
-
-        <label
-          class="flex items-center gap-[0.5vh] cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          <input
-            type="checkbox"
+    <div class="flex flex-row justify-between h-[20%]">
+      <!-- 左邊 -->
+      <div class="flex flex-row justify-between items-center gap-[0.8vh]">
+        <!-- 時間刻度切換 -->
+        <div class="flex items-center h-[85%] w-[7vh] bg-white rounded-[0.5vh]">
+          <button
+            @click="timeScale = 'day'"
+            :class="[
+              'rounded-s-[0.5vh] h-[100%] w-[50%] text-[1.5vh] transition-colors',
+              timeScale === 'day'
+                ? 'bg-sea-blue-500 text-sky-blue-100'
+                : 'text-black/40 ',
+            ]"
+          >
+            日
+          </button>
+          <button
+            @click="timeScale = 'year'"
+            :class="[
+              'rounded-e-[0.5vh] h-[100%] w-[50%] text-[1.5vh] transition-colors',
+              timeScale === 'year'
+                ? 'bg-sea-blue-500 text-sky-blue-100'
+                : 'text-black/40 ',
+            ]"
+          >
+            年
+          </button>
+        </div>
+        <div class="text-[1.5vh] text-black/40 font-bold">今日發電資訊</div>
+        <div class="text-[1.5vh] text-black/40 font-bold">|</div>
+        <!-- 數據開關 -->
+        <div class="flex items-center gap-[2vh]">
+          <EyeToggle
+            title="new pv 發電量"
+            color="#C0EEF5"
             v-model="dataVisibility.newPvGeneration"
-            class="w-[1.5vh] h-[1.5vh] accent-[#90CAE1]"
           />
-          <span>new pv 發電量</span>
-        </label>
-
-        <label
-          class="flex items-center gap-[0.5vh] cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          <input
-            type="checkbox"
+          <EyeToggle
+            title="pv 發電量"
+            color="#80DDEB"
             v-model="dataVisibility.pvGeneration"
-            class="w-[1.5vh] h-[1.5vh] accent-[#B8DBE8]"
           />
-          <span>pv 發電量</span>
-        </label>
-
-        <label
-          class="flex items-center gap-[0.5vh] cursor-pointer hover:opacity-80 transition-opacity"
-        >
-          <input
-            type="checkbox"
+          <EyeToggle
+            title="儲能發電量"
+            color="#21C3DB"
             v-model="dataVisibility.storageGeneration"
-            class="w-[1.5vh] h-[1.5vh] accent-[#E8C4B8]"
           />
-          <span>儲能發電量</span>
-        </label>
+        </div>
       </div>
     </div>
 
     <!-- 圖表 -->
-    <div class="h-[calc(100%-4vh)]">
-      <BarChart :data="chartData" :options="chartOptions" />
+    <div class="h-[75%]">
+      <v-chart :option="chartOption" autoresize />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { Bar as BarChart } from "vue-chartjs";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-
 import { defineProps, ref, computed } from "vue";
+import EyeToggle from "@/component/top-layer/blocks/chart-block/component/EyeToggle.vue";
 
 defineProps<{
   bottom: number;
 }>();
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
 
 // 時間刻度
 const timeScale = ref<"day" | "year">("day");
 
 // 數據顯示開關
 const dataVisibility = ref({
-  todayGeneration: true,
   newPvGeneration: true,
   pvGeneration: true,
   storageGeneration: true,
@@ -189,107 +143,112 @@ const yearData = {
   ],
 };
 
-// 計算圖表數據
-const chartData = computed(() => {
+// 計算圖表配置
+const chartOption = computed(() => {
   const currentData = timeScale.value === "day" ? dayData : yearData;
-  const datasets = [];
+  const series = [];
 
   if (dataVisibility.value.newPvGeneration) {
-    datasets.push({
-      label: "new pv 發電量",
+    series.push({
+      name: "new pv 發電量",
+      type: "bar",
+      stack: "total",
       data: currentData.newPvGeneration,
-      backgroundColor: "#90CAE1",
-      borderRadius:
-        datasets.length ===
-        Object.values(dataVisibility.value).filter(Boolean).length - 1
-          ? { topLeft: 4, topRight: 4 }
-          : { topLeft: 0, topRight: 0 },
-      borderSkipped: false,
+      itemStyle: {
+        color: "#C0EEF5",
+        borderRadius: 0,
+      },
+      barWidth: "50%",
     });
   }
 
   if (dataVisibility.value.pvGeneration) {
-    datasets.push({
-      label: "pv 發電量",
+    series.push({
+      name: "pv 發電量",
+      type: "bar",
+      stack: "total",
       data: currentData.pvGeneration,
-      backgroundColor: "#B8DBE8",
-      borderRadius:
-        datasets.length ===
-        Object.values(dataVisibility.value).filter(Boolean).length - 1
-          ? { topLeft: 4, topRight: 4 }
-          : { topLeft: 0, topRight: 0 },
-      borderSkipped: false,
+      itemStyle: {
+        color: "#80DDEB",
+        borderRadius: 0,
+      },
+      barWidth: "50%",
     });
   }
 
   if (dataVisibility.value.storageGeneration) {
-    datasets.push({
-      label: "儲能發電量",
+    series.push({
+      name: "儲能發電量",
+      type: "bar",
+      stack: "total",
       data: currentData.storageGeneration,
-      backgroundColor: "#E8C4B8",
-      borderRadius: { topLeft: 4, topRight: 4 },
-      borderSkipped: false,
+      itemStyle: {
+        color: "#21C3DB",
+        borderRadius: 0,
+      },
+      barWidth: "50%",
     });
   }
 
-  return {
-    labels: currentData.labels,
-    datasets,
-  };
-});
+  // 設定最後一個系列的圓角
+  if (series.length > 0) {
+    series[series.length - 1].itemStyle.borderRadius = [3, 3, 0, 0] as any;
+  }
 
-// 將 chartOptions 改為 computed，讓它能動態更新
-const chartOptions = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      display: false,
+  return {
+    grid: {
+      left: "0%",
+      right: "0%",
+      top: "0%",
+      bottom: "0%",
+      containLabel: true,
+    },
+    xAxis: {
+      type: "category",
+      data: currentData.labels,
+      axisLine: {
+        show: false,
+      },
+      axisTick: {
+        show: false,
+      },
+      axisLabel: {
+        color: "rgba(17,24,39,0.4)",
+        fontSize: 10,
+      },
+    },
+    yAxis: {
+      type: "value",
+      max: timeScale.value === "day" ? 100 : 3000,
+      splitLine: {
+        lineStyle: {
+          color: "rgba(17,24,39,0.4)",
+        },
+      },
+      axisLine: {
+        show: false,
+      },
+      axisTick: {
+        show: false,
+      },
+      axisLabel: {
+        color: "rgba(17,24,39,0.4)",
+        fontSize: 10,
+        formatter: (value: number) => value + " kwh",
+      },
     },
     tooltip: {
-      enabled: true,
-      mode: "index" as const,
-      intersect: false,
-    },
-  },
-  scales: {
-    x: {
-      stacked: true,
-      grid: {
-        display: false,
+      trigger: "axis",
+      axisPointer: {
+        type: "shadow",
       },
-      ticks: {
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      borderColor: "rgba(255, 255, 255, 0.2)",
+      textStyle: {
         color: "#FFFFFF",
-        font: {
-          size: 10,
-        },
-      },
-      border: {
-        display: false,
       },
     },
-    y: {
-      stacked: true,
-      beginAtZero: true,
-      max: timeScale.value === "day" ? 100 : 3000,
-      grid: {
-        color: "rgba(255, 255, 255, 0.1)",
-        drawBorder: false,
-      },
-      ticks: {
-        color: "#FFFFFF",
-        stepSize: timeScale.value === "day" ? 20 : 500,
-        font: {
-          size: 10,
-        },
-        callback: function (value: number) {
-          return value + " kwh";
-        },
-      },
-      border: {
-        display: false,
-      },
-    },
-  },
-}));
+    series: series,
+  };
+});
 </script>

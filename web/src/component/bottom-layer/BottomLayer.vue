@@ -177,10 +177,13 @@ const playIntroAnimation = () => {
   });
 };
 
+// 在你的類中保存 mixer
+let mixers: THREE.AnimationMixer[] = [];
+
 // 批量載入所有 areas
 const loadAllAreas = async (objectCreator: ObjectCreator) => {
   const areaPromises = areaConfigs.map((config) =>
-    objectCreator.createFBX(config.type, config.position)
+    objectCreator.createArea(config.type, config.position)
   );
 
   const areas = await Promise.all(areaPromises);
@@ -189,6 +192,14 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
     scene.add(area);
     clickableObjects.push(area);
   });
+
+  const v3 = new Vector3(0.5, 0, 1);
+  const road = await objectCreator.createRoad(v3);
+  scene.add(road);
+
+  const { object, mixer } = await objectCreator.createArrow("TEST", v3);
+  scene.add(object);
+  mixers.push(mixer);
 };
 
 const onMouseMove = (event: MouseEvent) => {
@@ -337,6 +348,11 @@ const update = () => {
   // 始終更新 lookAt
   camera.lookAt(currentLookAt);
   renderer.render(scene, camera);
+
+  // 更新動畫混合器
+  mixers.forEach((mixer) => {
+    mixer.update(0.016); // 假設每幀約16毫秒
+  });
 };
 
 // 響應式調整

@@ -60,7 +60,7 @@ export class ObjectCreator {
     scene.add(directionalLight2);
   }
 
-  createFBX(type: string, pos: THREE.Vector3): Promise<THREE.Group> {
+  createArea(type: string, pos: THREE.Vector3): Promise<THREE.Group> {
     return new Promise((resolve, reject) => {
       const loader = new FBXLoader();
       const textureLoader = new THREE.TextureLoader();
@@ -120,6 +120,123 @@ export class ObjectCreator {
         undefined, // onProgress callback (可選)
         (error) => {
           // 載入失敗時 reject
+          console.error("載入 FBX 時發生錯誤:", error);
+          reject(error);
+        }
+      );
+    });
+  }
+
+  createRoad(pos: THREE.Vector3): Promise<THREE.Group> {
+    return new Promise((resolve, reject) => {
+      const loader = new FBXLoader();
+      const textureLoader = new THREE.TextureLoader();
+
+      const baseTexture = textureLoader.load("./model/basetexture.jpg");
+      loader.load(
+        "./model/Road.fbx",
+        (object) => {
+          object.traverse((child) => {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            if (child instanceof THREE.Mesh) {
+              const materials = Array.isArray(child.material)
+                ? child.material
+                : [child.material];
+
+              const newMaterials = materials.map((mat) => {
+                return new THREE.MeshStandardMaterial({
+                  color: 0xffffff,
+                  map: baseTexture,
+                });
+              });
+
+              child.material = Array.isArray(child.material)
+                ? newMaterials
+                : newMaterials[0];
+            }
+          });
+
+          object.position.set(pos.x, pos.y, pos.z);
+
+          const scale = 0.075;
+          object.scale.set(scale, scale, scale);
+
+          // 成功載入後 resolve
+          resolve(object);
+        },
+        undefined, // onProgress callback (可選)
+        (error) => {
+          // 載入失敗時 reject
+          console.error("載入 FBX 時發生錯誤:", error);
+          reject(error);
+        }
+      );
+    });
+  }
+
+  createArrow(
+    type: string,
+    pos: THREE.Vector3
+  ): Promise<{
+    object: THREE.Group;
+    mixer: THREE.AnimationMixer;
+  }> {
+    return new Promise((resolve, reject) => {
+      const loader = new FBXLoader();
+      const textureLoader = new THREE.TextureLoader();
+
+      const baseTexture = textureLoader.load("./model/basetexture.jpg");
+
+      loader.load(
+        "./model/bridges/animationAtoB.fbx",
+        (object) => {
+          object.traverse((child) => {
+            child.castShadow = true;
+            child.receiveShadow = true;
+
+            if (child instanceof THREE.Mesh) {
+              const materials = Array.isArray(child.material)
+                ? child.material
+                : [child.material];
+
+              const newMaterials = materials.map((mat) => {
+                return new THREE.MeshStandardMaterial({
+                  color: 0xaaffff,
+                  map: baseTexture,
+                });
+              });
+
+              child.material = Array.isArray(child.material)
+                ? newMaterials
+                : newMaterials[0];
+            }
+          });
+
+          object.position.set(pos.x, pos.y, pos.z);
+
+          const scale = 0.075;
+          object.scale.set(scale, scale, scale);
+
+          object.userData.type = type;
+
+          // 創建動畫混合器
+          const mixer = new THREE.AnimationMixer(object);
+
+          // 如果 FBX 有動畫數據
+          console.log(object.animations);
+          if (object.animations && object.animations.length > 0) {
+            // 播放第一個動畫
+            const action = mixer.clipAction(object.animations[0]);
+            action.play();
+          }
+
+          // 返回物件和混合器
+          resolve({ object, mixer });
+        },
+        undefined,
+        (error) => {
           console.error("載入 FBX 時發生錯誤:", error);
           reject(error);
         }
