@@ -185,7 +185,7 @@ export class ObjectCreator {
       const baseTexture = textureLoader.load("./model/basetexture.jpg");
 
       loader.load(
-        "./model/bridges/Animation.fbx",
+        "./model/road/Animation.fbx",
         (object) => {
           object.traverse((child) => {
             child.castShadow = true;

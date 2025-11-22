@@ -201,7 +201,7 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
   const road = await objectCreator.createRoad(v3);
   scene.add(road);
 
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 7; i++) {
     const { object, mixer } = await objectCreator.createArrow("TEST", v3);
     scene.add(object);
 
