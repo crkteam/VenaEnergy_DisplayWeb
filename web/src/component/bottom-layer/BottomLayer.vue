@@ -3,7 +3,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, defineEmits } from "vue";
+import {
+  ref,
+  defineExpose,
+  onMounted,
+  onBeforeUnmount,
+  defineEmits,
+} from "vue";
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
 import { ObjectCreator } from "@/component/bottom-layer/object-creator";
@@ -38,8 +44,8 @@ let mouse: THREE.Vector2;
 let clickableObjects: THREE.Object3D[] = []; // 儲存可點擊的物件
 
 // 相機視差效果相關變數
-let targetCameraPosition: Vector3 = new Vector3(5.5, 6.5, 10);
-let lockedCameraPosition: Vector3 = new Vector3(5.5, 6.5, 10); // 鎖定時的基礎相機位置
+let targetCameraPosition: Vector3 = new Vector3(6.5, 10, 13);
+let lockedCameraPosition: Vector3 = new Vector3(6.5, 10, 13); // 鎖定時的基礎相機位置
 let currentCameraOffset = { x: 0, y: 0 };
 const parallaxStrength = 0.5; // 自由模式視差強度
 const lockedParallaxStrength = 0.3; // 鎖定模式視差強度 (較小)
@@ -51,7 +57,7 @@ let currentLookAt: Vector3 = new Vector3(0, 0, 0); // 當前看向的目標點
 let isIntroPlaying = true; // 是否正在播放開場動畫
 
 // 開場動畫的起始位置
-const introCameraPosition: Vector3 = new Vector3(5.5, 15, 10); // 從更高的位置開始
+const introCameraPosition: Vector3 = new Vector3(6.5, 20, 13); // 從更高的位置開始
 const introLookAt: Vector3 = new Vector3(0, 5, 2.5); // 開始時看向較高的位置
 
 // 統一配置所有 area 的資訊
@@ -59,22 +65,22 @@ const areaConfigs: AreaConfig[] = [
   {
     type: "A",
     position: new Vector3(-2.5, 0, -1.5),
-    cameraPosition: new Vector3(0, 4.5, 5),
+    cameraPosition: new Vector3(2.25, 3.5, 3.75),
   },
   {
     type: "B",
     position: new Vector3(-2.5, 0, 4.5),
-    cameraPosition: new Vector3(0, 4.5, 11),
+    cameraPosition: new Vector3(2.25, 3.5, 9.75),
   },
   {
     type: "C",
     position: new Vector3(4, 0, -1.5),
-    cameraPosition: new Vector3(6.5, 4.5, 5),
+    cameraPosition: new Vector3(8.75, 3.5, 3.75),
   },
   {
     type: "D",
     position: new Vector3(5, 0, 4.5),
-    cameraPosition: new Vector3(7.5, 4.5, 11),
+    cameraPosition: new Vector3(9.75, 3.5, 9.75),
   },
 ];
 
@@ -95,7 +101,6 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowResize);
-  window.removeEventListener("keydown", onKeyDown);
   container.value?.removeEventListener("click", onMouseClick);
   container.value?.removeEventListener("mousemove", onMouseMove);
   if (renderer) {
@@ -146,7 +151,6 @@ const initThree = async () => {
 
   // 添加事件監聽
   window.addEventListener("resize", onWindowResize);
-  window.addEventListener("keydown", onKeyDown);
   container.value.addEventListener("click", onMouseClick);
   container.value.addEventListener("mousemove", onMouseMove);
 };
@@ -197,9 +201,14 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
   const road = await objectCreator.createRoad(v3);
   scene.add(road);
 
-  const { object, mixer } = await objectCreator.createArrow("TEST", v3);
-  scene.add(object);
-  mixers.push(mixer);
+  for (let i = 0; i < 8; i++) {
+    const { object, mixer } = await objectCreator.createArrow("TEST", v3);
+    scene.add(object);
+
+    setTimeout(() => {
+      mixers.push(mixer);
+    }, i * 250);
+  }
 };
 
 const onMouseMove = (event: MouseEvent) => {
@@ -320,16 +329,11 @@ const unlockCamera = () => {
     duration: 1,
     ease: "power2.inOut",
   });
-
-  emit("unlock-camera");
 };
 
-// 按 ESC 鍵解鎖相機
-const onKeyDown = (event: KeyboardEvent) => {
-  if (event.key === "Escape" && isLocked) {
-    unlockCamera();
-  }
-};
+defineExpose({
+  unlockCamera,
+});
 
 const update = () => {
   requestAnimationFrame(update);

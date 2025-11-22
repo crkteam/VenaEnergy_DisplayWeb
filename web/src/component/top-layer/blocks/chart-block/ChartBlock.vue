@@ -1,8 +1,52 @@
 <template>
   <div
-    class="pointer-events-auto absolute flex flex-col justify-between p-[1vh] left-[1.9%] w-[84.5%] h-[27.7%] rounded-[1.5vh] bg-white/65 backdrop-blur-[0.25vh]"
+    class="pointer-events-auto absolute flex flex-col justify-between p-[1vh] left-[1.9%] w-[84.5%] h-[27.7%] rounded-[1.5vh] bg-white/65 backdrop-blur-[0.25vh] transition-all duration-300"
     :style="{ bottom: `${bottom}%` }"
   >
+    <!-- 收起按鈕 -->
+    <button
+      v-if="isExpanded"
+      @click="$emit('toggle')"
+      class="absolute top-[1vh] right-[1vh] w-[3vh] h-[3vh] bg-sea-blue-500 hover:bg-sea-blue-600 rounded-[0.5vh] flex items-center justify-center text-white transition-colors z-10"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-[1.5vh] h-[1.5vh]"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 9l-7 7-7-7"
+        />
+      </svg>
+    </button>
+
+    <!-- 展開按鈕 (在底部邊緣) -->
+    <button
+      v-if="!isExpanded"
+      @click="$emit('toggle')"
+      class="absolute top-[1vh] right-[1vh] w-[3vh] h-[3vh] bg-sea-blue-500 hover:bg-sea-blue-600 rounded-[0.5vh] flex items-center justify-center text-white transition-colors z-10"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="w-[1.5vh] h-[1.5vh]"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5 15l7-7 7 7"
+        />
+      </svg>
+    </button>
+
     <!-- 控制選項 -->
     <div class="flex flex-row justify-between h-[20%]">
       <!-- 左邊 -->
@@ -63,11 +107,16 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, ref, computed } from "vue";
+import { ref, computed, defineProps, defineEmits } from "vue";
 import EyeToggle from "@/component/top-layer/blocks/chart-block/component/EyeToggle.vue";
 
 defineProps<{
   bottom: number;
+  isExpanded: boolean;
+}>();
+
+defineEmits<{
+  toggle: [];
 }>();
 
 // 時間刻度

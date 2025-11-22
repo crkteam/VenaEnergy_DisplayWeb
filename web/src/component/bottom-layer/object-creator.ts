@@ -6,16 +6,11 @@ import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
 export class ObjectCreator {
   createCamera(view: Vector2, pos: Vector3): Camera {
     const aspect = view.x / view.y;
-    const frustumSize = 10;
+    const fov = 45; // 視野角度,通常 45-75 度之間
+    const near = 0.1;
+    const far = 1000;
 
-    const camera = new THREE.OrthographicCamera(
-      (frustumSize * aspect) / -2,
-      (frustumSize * aspect) / 2,
-      frustumSize / 2,
-      frustumSize / -2,
-      0.1,
-      1000
-    );
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
     camera.position.set(pos.x, pos.y, pos.z);
     camera.lookAt(0, 0, 0);
@@ -134,7 +129,7 @@ export class ObjectCreator {
 
       const baseTexture = textureLoader.load("./model/basetexture.jpg");
       loader.load(
-        "./model/Road.fbx",
+        "./model/road/Road.fbx",
         (object) => {
           object.traverse((child) => {
             child.castShadow = true;
@@ -190,7 +185,7 @@ export class ObjectCreator {
       const baseTexture = textureLoader.load("./model/basetexture.jpg");
 
       loader.load(
-        "./model/bridges/animationAtoB.fbx",
+        "./model/bridges/Animation.fbx",
         (object) => {
           object.traverse((child) => {
             child.castShadow = true;
