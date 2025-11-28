@@ -201,14 +201,16 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
   const road = await objectCreator.createRoad(v3);
   scene.add(road);
 
-  for (let i = 0; i < 7; i++) {
-    const { object, mixer } = await objectCreator.createArrow("TEST", v3);
-    scene.add(object);
+  // 載入
+  const arrowGroup = await objectCreator.createArrowGroup("TEST", v3, 7);
 
-    setTimeout(() => {
-      mixers.push(mixer);
-    }, i * 250);
-  }
+  // 加入場景
+  arrowGroup.objects.forEach((obj) => scene.add(obj));
+  arrowGroup.mixers.forEach((mixer) => mixers.push(mixer));
+
+  arrowGroup.play(0, {
+    staggerDelay: 428,
+  });
 };
 
 const onMouseMove = (event: MouseEvent) => {
@@ -335,8 +337,12 @@ defineExpose({
   unlockCamera,
 });
 
+const clock = new THREE.Clock();
+
 const update = () => {
   requestAnimationFrame(update);
+
+  const delta = clock.getDelta();
 
   // 開場動畫期間不應用視差效果
   if (!isIntroPlaying) {
@@ -355,7 +361,7 @@ const update = () => {
 
   // 更新動畫混合器
   mixers.forEach((mixer) => {
-    mixer.update(0.016); // 假設每幀約16毫秒
+    mixer.update(delta); // 假設每幀約16毫秒
   });
 };
 
