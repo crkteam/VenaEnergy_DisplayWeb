@@ -3,13 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  ref,
-  defineExpose,
-  onMounted,
-  onBeforeUnmount,
-  defineEmits,
-} from "vue";
+import { ref, defineExpose, onMounted, onBeforeUnmount } from "vue";
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
 import { ObjectCreator } from "@/component/bottom-layer/object-creator";
@@ -25,13 +19,8 @@ interface AreaConfig {
   type: string;
   position: Vector3;
   cameraPosition: Vector3;
+  focusLookAt: Vector3;
 }
-
-// 定義 emits
-const emit = defineEmits<{
-  (e: "lock-camera", areaType: string): void;
-  (e: "unlock-camera"): void;
-}>();
 
 const container = ref<HTMLDivElement | null>(null);
 
@@ -39,26 +28,22 @@ let scene: THREE.Scene;
 let camera: THREE.Camera;
 let renderer: THREE.WebGLRenderer;
 
-let raycaster: THREE.Raycaster;
-let mouse: THREE.Vector2;
-let clickableObjects: THREE.Object3D[] = []; // 儲存可點擊的物件
-
 // 相機視差效果相關變數
 let targetCameraPosition: Vector3 = new Vector3(6.5, 10, 13);
-let lockedCameraPosition: Vector3 = new Vector3(6.5, 10, 13); // 鎖定時的基礎相機位置
+let lockedCameraPosition: Vector3 = new Vector3(6.5, 10, 13);
 let currentCameraOffset = { x: 0, y: 0 };
-const parallaxStrength = 0.5; // 自由模式視差強度
-const lockedParallaxStrength = 0.3; // 鎖定模式視差強度 (較小)
-const smoothness = 0.1; // 平滑度,越小越平滑
+const parallaxStrength = 0.5;
+const lockedParallaxStrength = 0.3;
+const smoothness = 0.1;
 
 // 相機焦點相關變數
-let isLocked = false; // 是否鎖定在某個 area
-let currentLookAt: Vector3 = new Vector3(0, 0, 0); // 當前看向的目標點
-let isIntroPlaying = true; // 是否正在播放開場動畫
+let isLocked = false;
+let currentLookAt: Vector3 = new Vector3(0, 0, 0);
+let isIntroPlaying = true;
 
 // 開場動畫的起始位置
-const introCameraPosition: Vector3 = new Vector3(6.5, 20, 13); // 從更高的位置開始
-const introLookAt: Vector3 = new Vector3(0, 5, 2.5); // 開始時看向較高的位置
+const introCameraPosition: Vector3 = new Vector3(6.5, 20, 13);
+const introLookAt: Vector3 = new Vector3(0, 5, 2.5);
 
 // 統一配置所有 area 的資訊
 const areaConfigs: AreaConfig[] = [
@@ -66,21 +51,25 @@ const areaConfigs: AreaConfig[] = [
     type: "A",
     position: new Vector3(-2.5, 0, -1.5),
     cameraPosition: new Vector3(2.25, 3.5, 3.75),
+    focusLookAt: new Vector3(-1.5, 1, -2),
   },
   {
     type: "B",
     position: new Vector3(-2.5, 0, 4.5),
     cameraPosition: new Vector3(2.25, 3.5, 9.75),
+    focusLookAt: new Vector3(-1.5, 1, 4),
   },
   {
     type: "C",
     position: new Vector3(4, 0, -1.5),
     cameraPosition: new Vector3(8.75, 3.5, 3.75),
+    focusLookAt: new Vector3(5, 1, -2),
   },
   {
     type: "D",
     position: new Vector3(5, 0, 4.5),
     cameraPosition: new Vector3(9.75, 3.5, 9.75),
+    focusLookAt: new Vector3(6, 1, 4),
   },
 ];
 
@@ -89,7 +78,7 @@ const areaCameraPositions: Record<string, AreaCameraConfig> =
   areaConfigs.reduce((acc, config) => {
     acc[config.type] = {
       position: config.cameraPosition,
-      lookAt: config.position, // 直接使用 area 的位置
+      lookAt: config.focusLookAt,
     };
     return acc;
   }, {} as Record<string, AreaCameraConfig>);
@@ -101,23 +90,17 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowResize);
-  container.value?.removeEventListener("click", onMouseClick);
   container.value?.removeEventListener("mousemove", onMouseMove);
   if (renderer) {
     renderer.dispose();
   }
 
-  // 清除所有 GSAP 動畫
   gsap.killTweensOf(camera.position);
   gsap.killTweensOf(currentLookAt);
 });
 
 const initThree = async () => {
   if (!container.value) return;
-
-  // 初始化 Raycaster 和 Mouse
-  raycaster = new THREE.Raycaster();
-  mouse = new THREE.Vector2();
 
   // 場景
   scene = new THREE.Scene();
@@ -149,9 +132,8 @@ const initThree = async () => {
   // 播放開場動畫
   playIntroAnimation();
 
-  // 添加事件監聽
+  // 添加事件監聯
   window.addEventListener("resize", onWindowResize);
-  container.value.addEventListener("click", onMouseClick);
   container.value.addEventListener("mousemove", onMouseMove);
 };
 
@@ -159,19 +141,17 @@ const initThree = async () => {
 const playIntroAnimation = () => {
   isIntroPlaying = true;
 
-  // 相機位置動畫
   gsap.to(camera.position, {
     x: targetCameraPosition.x,
     y: targetCameraPosition.y,
     z: targetCameraPosition.z,
-    duration: 2, // 動畫時長
-    ease: "power2.out", // 緩動效果
+    duration: 2,
+    ease: "power2.out",
     onComplete: () => {
-      isIntroPlaying = false; // 動畫完成後允許互動
+      isIntroPlaying = false;
     },
   });
 
-  // lookAt 動畫
   gsap.to(currentLookAt, {
     x: 0,
     y: 0,
@@ -181,10 +161,13 @@ const playIntroAnimation = () => {
   });
 };
 
-// 在你的類中保存 mixer
 let mixers: THREE.AnimationMixer[] = [];
 
-// 批量載入所有 areas
+// 儲存 arrowGroup 的引用
+let arrowGroupInstance: Awaited<
+  ReturnType<ObjectCreator["createArrowGroup"]>
+> | null = null;
+
 const loadAllAreas = async (objectCreator: ObjectCreator) => {
   const areaPromises = areaConfigs.map((config) =>
     objectCreator.createArea(config.type, config.position)
@@ -194,17 +177,17 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
 
   areas.forEach((area) => {
     scene.add(area);
-    clickableObjects.push(area);
   });
 
   const v3 = new Vector3(0.5, 0, 1);
   const road = await objectCreator.createRoad(v3);
   scene.add(road);
 
-  // 載入
   const arrowGroup = await objectCreator.createArrowGroup("TEST", v3, 7);
 
-  // 加入場景
+  // 儲存引用
+  arrowGroupInstance = arrowGroup;
+
   arrowGroup.objects.forEach((obj) => scene.add(obj));
   arrowGroup.mixers.forEach((mixer) => mixers.push(mixer));
 
@@ -216,58 +199,19 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
 const onMouseMove = (event: MouseEvent) => {
   if (!container.value) return;
 
-  // 開場動畫期間不響應滑鼠移動
   if (isIntroPlaying) return;
 
-  // 計算滑鼠位置 (-1 到 +1)
   const rect = container.value.getBoundingClientRect();
   const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-  // 根據鎖定狀態使用不同的視差強度
   const strength = isLocked ? lockedParallaxStrength : parallaxStrength;
 
-  // 計算目標偏移量
   currentCameraOffset.x = mouseX * strength;
   currentCameraOffset.y = mouseY * strength;
 };
 
-const onMouseClick = (event: MouseEvent) => {
-  if (!container.value) return;
-
-  // 開場動畫期間不響應點擊
-  if (isIntroPlaying) return;
-
-  // 計算滑鼠在 three.js 正規化座標系統中的位置 (-1 到 +1)
-  const rect = container.value.getBoundingClientRect();
-  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-  // 更新 raycaster
-  raycaster.setFromCamera(mouse, camera);
-
-  // 檢測射線與物件的交點
-  const intersects = raycaster.intersectObjects(clickableObjects, true);
-
-  if (intersects.length > 0) {
-    // 找到最上層的父物件(FBX 模型)
-    let clickedObject = intersects[0].object;
-    while (clickedObject.parent && !clickedObject.userData.type) {
-      clickedObject = clickedObject.parent;
-    }
-
-    // 處理點擊事件
-    handleObjectClick(clickedObject);
-  }
-};
-
-const handleObjectClick = (object: THREE.Object3D) => {
-  const areaType = object.userData.type as string;
-
-  // 鎖定到該 area
-  lockCameraToArea(areaType);
-};
-
+// 鎖定相機到指定 area（由外部呼叫）
 const lockCameraToArea = (areaType: string) => {
   const cameraConfig = areaCameraPositions[areaType];
 
@@ -276,17 +220,12 @@ const lockCameraToArea = (areaType: string) => {
     return;
   }
 
-  // 設定鎖定狀態
   isLocked = true;
-
-  // 儲存鎖定時的基礎相機位置
   lockedCameraPosition = cameraConfig.position.clone();
 
-  // 停止之前的動畫
   gsap.killTweensOf(camera.position);
   gsap.killTweensOf(currentLookAt);
 
-  // 使用 GSAP 動畫相機位置
   gsap.to(camera.position, {
     x: cameraConfig.position.x,
     y: cameraConfig.position.y,
@@ -295,7 +234,6 @@ const lockCameraToArea = (areaType: string) => {
     ease: "power2.inOut",
   });
 
-  // 同時動畫 lookAt 目標 (使用 area 的位置)
   gsap.to(currentLookAt, {
     x: cameraConfig.lookAt.x,
     y: cameraConfig.lookAt.y,
@@ -303,18 +241,14 @@ const lockCameraToArea = (areaType: string) => {
     duration: 1,
     ease: "power2.inOut",
   });
-
-  emit("lock-camera", areaType);
 };
 
 const unlockCamera = () => {
   isLocked = false;
 
-  // 停止之前的動畫
   gsap.killTweensOf(camera.position);
   gsap.killTweensOf(currentLookAt);
 
-  // 使用 GSAP 動畫回到初始位置
   gsap.to(camera.position, {
     x: targetCameraPosition.x,
     y: targetCameraPosition.y,
@@ -323,7 +257,6 @@ const unlockCamera = () => {
     ease: "power2.inOut",
   });
 
-  // 動畫 lookAt 回到中心點
   gsap.to(currentLookAt, {
     x: 0,
     y: 0,
@@ -333,8 +266,34 @@ const unlockCamera = () => {
   });
 };
 
+// 播放 arrow 動畫（由外部呼叫）
+const playArrowAnimation = (
+  state: number,
+  options?: { staggerDelay?: number }
+) => {
+  if (arrowGroupInstance) {
+    arrowGroupInstance.play(state, options);
+  } else {
+    console.warn("arrowGroup 尚未初始化");
+  }
+};
+
+// 停止 arrow 動畫（由外部呼叫）
+const stopArrowAnimation = () => {
+  if (arrowGroupInstance) {
+    arrowGroupInstance.stop?.();
+  }
+};
+
+// 取得 arrowGroup 實例（如果外部需要更多控制）
+const getArrowGroup = () => arrowGroupInstance;
+
 defineExpose({
   unlockCamera,
+  lockCameraToArea,
+  playArrowAnimation,
+  stopArrowAnimation,
+  getArrowGroup,
 });
 
 const clock = new THREE.Clock();
@@ -344,9 +303,7 @@ const update = () => {
 
   const delta = clock.getDelta();
 
-  // 開場動畫期間不應用視差效果
   if (!isIntroPlaying) {
-    // 應用視差效果 (自由模式和鎖定模式都適用)
     const basePosition = isLocked ? lockedCameraPosition : targetCameraPosition;
     const newX = basePosition.x + currentCameraOffset.x;
     const newY = basePosition.y + currentCameraOffset.y;
@@ -355,17 +312,14 @@ const update = () => {
     camera.position.y += (newY - camera.position.y) * smoothness;
   }
 
-  // 始終更新 lookAt
   camera.lookAt(currentLookAt);
   renderer.render(scene, camera);
 
-  // 更新動畫混合器
   mixers.forEach((mixer) => {
-    mixer.update(delta); // 假設每幀約16毫秒
+    mixer.update(delta);
   });
 };
 
-// 響應式調整
 const onWindowResize = () => {
   if (!container.value) return;
 

@@ -11,15 +11,35 @@
     >
       <div v-if="isUnlocked">
         <ShortDataBlock />
-        <TitleBlock :left="15" :top="30" title="GRID" :type="2" />
-        <TitleBlock :left="5" :top="70" title="PV" :type="1" />
-        <TitleBlock :left="35" :top="82" title="ESS" :type="3" />
-        <TitleBlock :left="70" :top="60" title="PV" :type="1" />
-        <ChartBlock
-          :bottom="chartBottom"
-          @toggle="toggleChart"
-          :isExpanded="isChartExpanded"
+        <TitleBlock
+          :left="15"
+          :top="30"
+          title="GRID"
+          :type="2"
+          @click="handleTitleClick('A')"
         />
+        <TitleBlock
+          :left="5"
+          :top="70"
+          title="PV"
+          :type="1"
+          @click="handleTitleClick('B')"
+        />
+        <TitleBlock
+          :left="70"
+          :top="60"
+          title="PV"
+          :type="1"
+          @click="handleTitleClick('C')"
+        />
+        <TitleBlock
+          :left="35"
+          :top="82"
+          title="ESS"
+          :type="3"
+          @click="handleTitleClick('D')"
+        />
+        <ChartBlock @toggle="toggleChart" :isExpanded="isChartExpanded" />
       </div>
     </Transition>
     <Transition
@@ -86,16 +106,21 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   unlockCamera: [];
+  lockCamera: [areaType: string];
 }>();
 
 const isUnlocked = computed(() => props.cameraLockedType === "");
 
 // 圖表展開狀態
 const isChartExpanded = ref(false);
-const chartBottom = computed(() => (isChartExpanded.value ? 0 : -20));
 
 const toggleChart = () => {
   isChartExpanded.value = !isChartExpanded.value;
+};
+
+// TitleBlock 點擊處理
+const handleTitleClick = (areaType: string) => {
+  emit("lockCamera", areaType);
 };
 
 // 返回按鈕點擊處理

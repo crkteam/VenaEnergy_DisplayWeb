@@ -1,7 +1,10 @@
 <template>
   <div
-    class="pointer-events-auto absolute flex flex-col justify-between p-[1vh] left-[1.9%] w-[84.5%] h-[27.7%] rounded-[1.5vh] bg-white/65 backdrop-blur-[0.25vh] transition-all duration-300"
-    :style="{ bottom: `${bottom}%` }"
+    class="pointer-events-auto absolute flex flex-col justify-between p-[1vh] left-[1.9%] h-[27.7%] rounded-[1.5vh] bg-white/65 backdrop-blur-[0.25vh] transition-all duration-300"
+    :style="{
+      bottom: `${isExpanded ? 0 : -20.5}%`,
+      width: `${isExpanded ? 84.5 : 13.5}%`,
+    }"
   >
     <!-- 收起按鈕 -->
     <button
@@ -52,7 +55,10 @@
       <!-- 左邊 -->
       <div class="flex flex-row justify-between items-center gap-[0.8vh]">
         <!-- 時間刻度切換 -->
-        <div class="flex items-center h-[85%] w-[7vh] bg-white rounded-[0.5vh]">
+        <div
+          v-if="isExpanded"
+          class="flex items-center h-[85%] w-[7vh] bg-white rounded-[0.5vh]"
+        >
           <button
             @click="timeScale = 'day'"
             :class="[
@@ -77,9 +83,11 @@
           </button>
         </div>
         <div class="text-[1.5vh] text-black/40 font-bold">今日發電資訊</div>
-        <div class="text-[1.5vh] text-black/40 font-bold">|</div>
+        <div v-if="isExpanded" class="text-[1.5vh] text-black/40 font-bold">
+          |
+        </div>
         <!-- 數據開關 -->
-        <div class="flex items-center gap-[2vh]">
+        <div v-if="isExpanded" class="flex items-center gap-[2vh]">
           <EyeToggle
             title="new pv 發電量"
             color="#C0EEF5"
@@ -100,7 +108,7 @@
     </div>
 
     <!-- 圖表 -->
-    <div class="h-[75%]">
+    <div v-if="isExpanded" class="h-[75%]">
       <v-chart :option="chartOption" autoresize />
     </div>
   </div>
@@ -237,11 +245,6 @@ const chartOption = computed(() => {
       },
       barWidth: "50%",
     });
-  }
-
-  // 設定最後一個系列的圓角
-  if (series.length > 0) {
-    series[series.length - 1].itemStyle.borderRadius = [3, 3, 0, 0] as any;
   }
 
   return {
