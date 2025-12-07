@@ -6,7 +6,12 @@
 import { ref, defineExpose, onMounted, onBeforeUnmount } from "vue";
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
-import { ObjectCreator } from "@/component/bottom-layer/object-creator";
+import {
+  ObjectCreator,
+  MultiAnimationController,
+  AnimationGroupType,
+  AnimationState,
+} from "@/component/bottom-layer/object-creator";
 import gsap from "gsap";
 
 // 定義類型
@@ -44,6 +49,9 @@ let isIntroPlaying = true;
 // 開場動畫的起始位置
 const introCameraPosition: Vector3 = new Vector3(6.5, 20, 13);
 const introLookAt: Vector3 = new Vector3(0, 5, 2.5);
+
+// 動畫控制器
+let animController: MultiAnimationController | null = null;
 
 // 統一配置所有 area 的資訊
 const areaConfigs: AreaConfig[] = [
@@ -161,13 +169,6 @@ const playIntroAnimation = () => {
   });
 };
 
-let mixers: THREE.AnimationMixer[] = [];
-
-// 儲存 arrowGroup 的引用
-let arrowGroupInstance: Awaited<
-  ReturnType<ObjectCreator["createArrowGroup"]>
-> | null = null;
-
 const loadAllAreas = async (objectCreator: ObjectCreator) => {
   const areaPromises = areaConfigs.map((config) =>
     objectCreator.createArea(config.type, config.position)
@@ -183,16 +184,19 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
   const road = await objectCreator.createRoad(v3);
   scene.add(road);
 
-  const arrowGroup = await objectCreator.createArrowGroup("TEST", v3, 7);
+  // 建立動畫控制器
+  animController = await objectCreator.createMultiAnimationGroup(v3);
 
-  // 儲存引用
-  arrowGroupInstance = arrowGroup;
+  // 將所有物件加入場景
+  animController.getAllObjects().forEach((obj) => scene.add(obj));
 
-  arrowGroup.objects.forEach((obj) => scene.add(obj));
-  arrowGroup.mixers.forEach((mixer) => mixers.push(mixer));
-
-  arrowGroup.play(0, {
-    staggerDelay: 428,
+  // 設定初始狀態（可依需求調整）
+  animController.setStates({
+    A: 0,
+    B: 1,
+    C: 0,
+    D: 0,
+    X: 1,
   });
 };
 
@@ -266,34 +270,66 @@ const unlockCamera = () => {
   });
 };
 
-// 播放 arrow 動畫（由外部呼叫）
-const playArrowAnimation = (
-  state: number,
-  options?: { staggerDelay?: number }
-) => {
-  if (arrowGroupInstance) {
-    arrowGroupInstance.play(state, options);
+// 設定單一動畫組狀態（由外部呼叫）
+const setAnimationState = (type: AnimationGroupType, state: AnimationState) => {
+  if (animController) {
+    animController.setState(type, state);
   } else {
-    console.warn("arrowGroup 尚未初始化");
+    console.warn("animController 尚未初始化");
   }
 };
 
-// 停止 arrow 動畫（由外部呼叫）
-const stopArrowAnimation = () => {
-  if (arrowGroupInstance) {
-    arrowGroupInstance.stop?.();
+// 批次設定動畫狀態（由外部呼叫）
+const setAnimationStates = (
+  states: Partial<Record<AnimationGroupType, AnimationState>>
+) => {
+  if (animController) {
+    animController.setStates(states);
+  } else {
+    console.warn("animController 尚未初始化");
   }
 };
 
-// 取得 arrowGroup 實例（如果外部需要更多控制）
-const getArrowGroup = () => arrowGroupInstance;
+// 設定所有動畫狀態（由外部呼叫）
+const setAllAnimationStates = (state: AnimationState) => {
+  if (animController) {
+    animController.setAllStates(state);
+  } else {
+    console.warn("animController 尚未初始化");
+  }
+};
+
+// 取得動畫狀態（由外部呼叫）
+const getAnimationState = (type: AnimationGroupType): AnimationState => {
+  if (animController) {
+    return animController.getState(type);
+  }
+  return "stop";
+};
+
+// 取得所有動畫狀態（由外部呼叫）
+const getAllAnimationStates = (): Record<
+  AnimationGroupType,
+  AnimationState
+> => {
+  if (animController) {
+    return animController.getAllStates();
+  }
+  return { A: "stop", B: "stop", C: "stop", D: "stop", X: "stop" };
+};
+
+// 取得動畫控制器實例（如果外部需要更多控制）
+const getAnimController = () => animController;
 
 defineExpose({
   unlockCamera,
   lockCameraToArea,
-  playArrowAnimation,
-  stopArrowAnimation,
-  getArrowGroup,
+  setAnimationState,
+  setAnimationStates,
+  setAllAnimationStates,
+  getAnimationState,
+  getAllAnimationStates,
+  getAnimController,
 });
 
 const clock = new THREE.Clock();
@@ -302,6 +338,11 @@ const update = () => {
   requestAnimationFrame(update);
 
   const delta = clock.getDelta();
+
+  // 更新動畫控制器
+  if (animController) {
+    animController.update(delta);
+  }
 
   if (!isIntroPlaying) {
     const basePosition = isLocked ? lockedCameraPosition : targetCameraPosition;
@@ -314,10 +355,6 @@ const update = () => {
 
   camera.lookAt(currentLookAt);
   renderer.render(scene, camera);
-
-  mixers.forEach((mixer) => {
-    mixer.update(delta);
-  });
 };
 
 const onWindowResize = () => {
