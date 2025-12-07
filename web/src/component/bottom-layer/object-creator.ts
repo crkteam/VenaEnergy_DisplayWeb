@@ -184,7 +184,7 @@ export class ObjectCreator {
     const loadSingle = (): Promise<THREE.Group> => {
       return new Promise((resolve, reject) => {
         loader.load(
-          "./model/road/Animation.fbx",
+          "./model/road/Aanimation.fbx",
           (object) => {
             object.traverse((child) => {
               child.castShadow = true;
