@@ -34,8 +34,8 @@ let camera: THREE.Camera;
 let renderer: THREE.WebGLRenderer;
 
 // 相機視差效果相關變數
-let targetCameraPosition: Vector3 = new Vector3(6.5, 10, 13);
-let lockedCameraPosition: Vector3 = new Vector3(6.5, 10, 13);
+let targetCameraPosition: Vector3 = new Vector3(5, 13, 17.5);
+let lockedCameraPosition: Vector3 = new Vector3(5, 13, 17.5);
 let currentCameraOffset = { x: 0, y: 0 };
 const parallaxStrength = 0.5;
 const lockedParallaxStrength = 0.3;
@@ -184,19 +184,25 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
   const road = await objectCreator.createRoad(v3);
   scene.add(road);
 
-  // 建立動畫控制器
-  animController = await objectCreator.createMultiAnimationGroup(v3);
+  // 建立動畫控制器，並設定各組的實例數量和延遲
+  animController = await objectCreator.createMultiAnimationGroup(v3, {
+    A: { count: 7, delay: 0.25 }, // A 組 5 份，每份間隔 1 秒
+    B: { count: 7, delay: 0.25 }, // B 組 3 份，每份間隔 0.5 秒
+    C: { count: 2, delay: 0.25 }, // C 組 4 份，每份間隔 0.25 秒
+    D: { count: 2, delay: 0.25 }, // D 組 2 份，每份間隔 0.8 秒
+    X: { count: 7, delay: 0.2 }, // X 組 1 份（預設）
+  });
 
   // 將所有物件加入場景
   animController.getAllObjects().forEach((obj) => scene.add(obj));
 
-  // 設定初始狀態（可依需求調整）
+  // 設定狀態 - 會同時控制該組所有實例
   animController.setStates({
     A: 0,
-    B: 1,
+    B: 0,
     C: 0,
     D: 0,
-    X: 1,
+    X: 0,
   });
 };
 
@@ -318,6 +324,15 @@ const getAllAnimationStates = (): Record<
   return { A: "stop", B: "stop", C: "stop", D: "stop", X: "stop" };
 };
 
+// 恢復所有動畫（從暫停狀態繼續播放）
+const resumeAllAnimations = () => {
+  if (animController) {
+    animController.resumeAll();
+  } else {
+    console.warn("animController 尚未初始化");
+  }
+};
+
 // 取得動畫控制器實例（如果外部需要更多控制）
 const getAnimController = () => animController;
 
@@ -327,6 +342,7 @@ defineExpose({
   setAnimationState,
   setAnimationStates,
   setAllAnimationStates,
+  resumeAllAnimations,
   getAnimationState,
   getAllAnimationStates,
   getAnimController,

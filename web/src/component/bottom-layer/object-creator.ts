@@ -9,15 +9,30 @@ export type AnimationGroupType = "A" | "B" | "C" | "D" | "X";
 // 動畫狀態
 export type AnimationState = 0 | 1 | "stop";
 
-// 單一動畫組控制器
-export interface SingleAnimationController {
+// 單一動畫組的配置
+export interface AnimationGroupConfig {
+  count: number; // 該組要生成幾份
+  delay: number; // 每份之間的延遲（秒）
+}
+
+// 單一實例控制器（內部使用）
+interface SingleInstanceController {
   object: THREE.Group;
   mixer: THREE.AnimationMixer;
   clips: THREE.AnimationClip[];
+  currentAction: THREE.AnimationAction | null;
+}
+
+// 單一動畫組控制器（包含多個實例）
+export interface SingleAnimationController {
+  instances: SingleInstanceController[];
   currentState: AnimationState;
+  config: AnimationGroupConfig;
 
   setState: (state: AnimationState) => void;
   getState: () => AnimationState;
+  getAllObjects: () => THREE.Group[];
+  resume: () => void; // 從暫停恢復播放
 }
 
 // 完整的五組動畫控制器
@@ -46,7 +61,21 @@ export interface MultiAnimationController {
 
   // 取得所有狀態
   getAllStates: () => Record<AnimationGroupType, AnimationState>;
+
+  // 從暫停恢復所有動畫
+  resumeAll: () => void;
 }
+
+// 建立 MultiAnimationGroup 的配置
+export type MultiAnimationGroupConfig = Partial<
+  Record<AnimationGroupType, AnimationGroupConfig>
+>;
+
+// 預設配置
+const DEFAULT_CONFIG: AnimationGroupConfig = {
+  count: 1,
+  delay: 0,
+};
 
 export class ObjectCreator {
   createCamera(view: Vector2, pos: Vector3): Camera {
@@ -210,10 +239,14 @@ export class ObjectCreator {
 
   /**
    * 創建多組動畫控制器（A、B、C、D、X）
-   * 每組有獨立的動畫檔案和兩個動畫
+   * 每組可配置實例數量和延遲
+   *
+   * @param pos 基礎位置
+   * @param config 各組的配置，例如 { A: { count: 5, delay: 1 }, B: { count: 3, delay: 0.5 } }
    */
   async createMultiAnimationGroup(
-    pos: THREE.Vector3
+    pos: THREE.Vector3,
+    config?: MultiAnimationGroupConfig
   ): Promise<MultiAnimationController> {
     const animationTypes: AnimationGroupType[] = ["A", "B", "C", "D", "X"];
     const controllers = new Map<
@@ -223,7 +256,12 @@ export class ObjectCreator {
 
     // 載入每一組動畫
     for (const type of animationTypes) {
-      const controller = await this.loadSingleAnimationGroup(type, pos);
+      const groupConfig = config?.[type] ?? DEFAULT_CONFIG;
+      const controller = await this.loadSingleAnimationGroup(
+        type,
+        pos,
+        groupConfig
+      );
       controllers.set(type, controller);
     }
 
@@ -262,14 +300,18 @@ export class ObjectCreator {
 
       update(delta: number) {
         controllers.forEach((controller) => {
-          controller.mixer.update(delta);
+          controller.instances.forEach((instance) => {
+            instance.mixer.update(delta);
+          });
         });
       },
 
       getAllObjects(): THREE.Group[] {
         const objects: THREE.Group[] = [];
         controllers.forEach((controller) => {
-          objects.push(controller.object);
+          controller.instances.forEach((instance) => {
+            objects.push(instance.object);
+          });
         });
         return objects;
       },
@@ -287,22 +329,154 @@ export class ObjectCreator {
         });
         return states;
       },
+
+      resumeAll() {
+        controllers.forEach((controller) => {
+          controller.resume();
+        });
+      },
     };
 
     return multiController;
   }
 
   /**
-   * 載入單一動畫組
+   * 載入單一動畫組（可包含多個實例）
    */
   private async loadSingleAnimationGroup(
     type: AnimationGroupType,
-    pos: THREE.Vector3
+    pos: THREE.Vector3,
+    config: AnimationGroupConfig
   ): Promise<SingleAnimationController> {
     const loader = new FBXLoader();
     const textureLoader = new THREE.TextureLoader();
     const baseTexture = textureLoader.load("./model/basetexture.jpg");
 
+    const instances: SingleInstanceController[] = [];
+
+    // 載入指定數量的實例
+    for (let i = 0; i < config.count; i++) {
+      const instance = await this.loadSingleInstance(
+        type,
+        pos,
+        loader,
+        baseTexture
+      );
+      instances.push(instance);
+    }
+
+    // 追蹤延遲 timeouts
+    let staggerTimeouts: number[] = [];
+
+    const controller: SingleAnimationController = {
+      instances,
+      currentState: "stop" as AnimationState,
+      config,
+
+      setState(state: AnimationState) {
+        // 如果狀態相同則不處理
+        if (this.currentState === state) return;
+
+        // 清除之前的延遲
+        staggerTimeouts.forEach((t) => clearTimeout(t));
+        staggerTimeouts = [];
+
+        // 如果是暫停狀態，凍結所有動畫在當前畫面
+        if (state === "stop") {
+          instances.forEach((instance) => {
+            if (instance.currentAction) {
+              instance.currentAction.paused = true;
+            }
+          });
+          this.currentState = state;
+          return;
+        }
+
+        const clipIndex = state as number; // 0 或 1
+        const previousState = this.currentState;
+        this.currentState = state;
+
+        // 依序播放每個實例的動畫（帶延遲）
+        instances.forEach((instance, index) => {
+          const delayMs = index * config.delay * 1000; // 轉換為毫秒
+
+          const timeoutId = window.setTimeout(() => {
+            if (clipIndex >= 0 && clipIndex < instance.clips.length) {
+              // 如果之前是暫停狀態，且要播放同一個動畫，則恢復播放
+              if (
+                previousState === "stop" &&
+                instance.currentAction &&
+                instance.currentAction.getClip() === instance.clips[clipIndex]
+              ) {
+                instance.currentAction.paused = false;
+              } else {
+                // 停止舊動畫
+                if (instance.currentAction) {
+                  instance.currentAction.stop();
+                }
+
+                // 播放新動畫
+                const action = instance.mixer.clipAction(
+                  instance.clips[clipIndex]
+                );
+                action.loop = THREE.LoopRepeat;
+                action.reset().play();
+                instance.currentAction = action;
+              }
+            } else {
+              console.warn(
+                `Animation clip index ${clipIndex} not found for group "${type}"`
+              );
+            }
+          }, delayMs);
+
+          staggerTimeouts.push(timeoutId);
+        });
+      },
+
+      getState(): AnimationState {
+        return this.currentState;
+      },
+
+      getAllObjects(): THREE.Group[] {
+        return instances.map((instance) => instance.object);
+      },
+
+      resume() {
+        // 只有在暫停狀態才執行恢復
+        if (this.currentState !== "stop") return;
+
+        // 恢復所有實例的動畫
+        instances.forEach((instance) => {
+          if (instance.currentAction) {
+            instance.currentAction.paused = false;
+          }
+        });
+
+        // 找出之前播放的是哪個動畫（從 currentAction 判斷）
+        const firstInstance = instances[0];
+        if (firstInstance?.currentAction) {
+          const clip = firstInstance.currentAction.getClip();
+          const clipIndex = firstInstance.clips.indexOf(clip);
+          if (clipIndex !== -1) {
+            this.currentState = clipIndex as AnimationState;
+          }
+        }
+      },
+    };
+
+    return controller;
+  }
+
+  /**
+   * 載入單一實例
+   */
+  private loadSingleInstance(
+    type: AnimationGroupType,
+    pos: THREE.Vector3,
+    loader: FBXLoader,
+    baseTexture: THREE.Texture
+  ): Promise<SingleInstanceController> {
     return new Promise((resolve, reject) => {
       loader.load(
         `./model/road/${type}animation.fbx`,
@@ -361,56 +535,17 @@ export class ObjectCreator {
                   track.times[i] -= minTime;
                 }
               });
-            }
 
-            clip.duration = 3; // 固定動畫長度
+              clip.duration = maxTime - minTime;
+            }
           });
 
-          // 當前狀態和 action
-          let currentAction: THREE.AnimationAction | null = null;
-
-          const controller: SingleAnimationController = {
+          resolve({
             object,
             mixer,
             clips,
-            currentState: "stop" as AnimationState,
-
-            setState(state: AnimationState) {
-              // 如果狀態相同則不處理
-              if (this.currentState === state) return;
-
-              // 停止當前動畫
-              if (currentAction) {
-                currentAction.stop();
-                currentAction = null;
-              }
-
-              this.currentState = state;
-
-              // 根據狀態播放對應動畫
-              if (state === "stop") {
-                // 不播放任何動畫
-                return;
-              }
-
-              const clipIndex = state as number; // 0 或 1
-              if (clipIndex >= 0 && clipIndex < clips.length) {
-                currentAction = mixer.clipAction(clips[clipIndex]);
-                currentAction.loop = THREE.LoopRepeat;
-                currentAction.reset().play();
-              } else {
-                console.warn(
-                  `Animation clip index ${clipIndex} not found for group "${type}"`
-                );
-              }
-            },
-
-            getState(): AnimationState {
-              return this.currentState;
-            },
-          };
-
-          resolve(controller);
+            currentAction: null,
+          });
         },
         undefined,
         (error) => {

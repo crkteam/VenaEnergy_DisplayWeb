@@ -12,7 +12,7 @@
       <div v-if="isUnlocked">
         <ShortDataBlock />
         <TitleBlock
-          :left="15"
+          :left="18"
           :top="30"
           title="GRID"
           :type="2"
@@ -26,14 +26,14 @@
           @click="handleTitleClick('B')"
         />
         <TitleBlock
-          :left="70"
-          :top="60"
+          :left="72.5"
+          :top="50"
           title="PV"
           :type="1"
           @click="handleTitleClick('C')"
         />
         <TitleBlock
-          :left="35"
+          :left="40"
           :top="82"
           title="ESS"
           :type="3"
