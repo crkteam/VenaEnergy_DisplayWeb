@@ -7,7 +7,11 @@
       <span class="text-[1.2vh] text-black/40">(MWp)</span>
     </div>
     <div class="flex items-center gap-[1vh]">
-      <img src="@/assets/svg/light.svg" class="w-[1.35vh] h-auto" alt="" />
+      <img
+        :src="require(`@/assets/svg/icon-type-4.svg`)"
+        class="h-auto w-[1.35vh]"
+        alt=""
+      />
       <div class="text-[1.4vh] text-black/40">{{ title }}</div>
     </div>
   </div>

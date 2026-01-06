@@ -10,7 +10,7 @@
     <button
       v-if="isExpanded"
       @click="$emit('toggle')"
-      class="absolute top-[1vh] right-[1vh] w-[3vh] h-[3vh] bg-sea-blue-500 hover:bg-sea-blue-600 rounded-[0.5vh] flex items-center justify-center text-white transition-colors z-10"
+      class="absolute top-[1vh] right-[1vh] w-[3vh] h-[3vh] bg-primary-1 rounded-[0.5vh] flex items-center justify-center text-white transition-colors z-10"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -32,7 +32,7 @@
     <button
       v-if="!isExpanded"
       @click="$emit('toggle')"
-      class="absolute top-[1vh] right-[1vh] w-[3vh] h-[3vh] bg-sea-blue-500 hover:bg-sea-blue-600 rounded-[0.5vh] flex items-center justify-center text-white transition-colors z-10"
+      class="absolute top-[1vh] right-[1vh] w-[3vh] h-[3vh] bg-primary-1 rounded-[0.5vh] flex items-center justify-center text-white transition-colors z-10"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -64,7 +64,7 @@
             :class="[
               'rounded-s-[0.5vh] h-[100%] w-[50%] text-[1.5vh] transition-colors',
               timeScale === 'day'
-                ? 'bg-sea-blue-500 text-sky-blue-100'
+                ? 'bg-primary-1 text-white'
                 : 'text-black/40 ',
             ]"
           >
@@ -75,7 +75,7 @@
             :class="[
               'rounded-e-[0.5vh] h-[100%] w-[50%] text-[1.5vh] transition-colors',
               timeScale === 'year'
-                ? 'bg-sea-blue-500 text-sky-blue-100'
+                ? 'bg-primary-1 text-white'
                 : 'text-black/40 ',
             ]"
           >
@@ -90,17 +90,17 @@
         <div v-if="isExpanded" class="flex items-center gap-[2vh]">
           <EyeToggle
             title="new pv 發電量"
-            color="#C0EEF5"
+            color="#C3851C"
             v-model="dataVisibility.newPvGeneration"
           />
           <EyeToggle
             title="pv 發電量"
-            color="#80DDEB"
+            color="#DCAA24"
             v-model="dataVisibility.pvGeneration"
           />
           <EyeToggle
             title="儲能發電量"
-            color="#21C3DB"
+            color="#E5C741"
             v-model="dataVisibility.storageGeneration"
           />
         </div>
@@ -212,7 +212,7 @@ const chartOption = computed(() => {
       stack: "total",
       data: currentData.newPvGeneration,
       itemStyle: {
-        color: "#C0EEF5",
+        color: "#C3851C",
         borderRadius: 0,
       },
       barWidth: "50%",
@@ -226,7 +226,7 @@ const chartOption = computed(() => {
       stack: "total",
       data: currentData.pvGeneration,
       itemStyle: {
-        color: "#80DDEB",
+        color: "#DCAA24",
         borderRadius: 0,
       },
       barWidth: "50%",
@@ -240,7 +240,7 @@ const chartOption = computed(() => {
       stack: "total",
       data: currentData.storageGeneration,
       itemStyle: {
-        color: "#21C3DB",
+        color: "#E5C741",
         borderRadius: 0,
       },
       barWidth: "50%",

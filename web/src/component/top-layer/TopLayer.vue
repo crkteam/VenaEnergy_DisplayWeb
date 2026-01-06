@@ -51,7 +51,7 @@
       leave-to-class="opacity-0"
     >
       <div v-if="!isUnlocked">
-        <DataBlock />
+        <DataBlock :area-type="props.cameraLockedType" />
         <!-- 返回按鈕 -->
         <div
           @click="handleBackClick"
@@ -67,13 +67,13 @@
               fill="#00548A"
             />
           </svg>
-          <div class="text-[1.35vh] font-semibold text-sea-blue-700">返回</div>
+          <div class="text-[1.35vh] font-semibold text-primary-1">返回</div>
         </div>
       </div>
     </Transition>
     <!-- 全螢幕按鈕 -->
     <div
-      class="pointer-events-auto absolute flex flex-row gap-[0.7vh] items-center justify-center bg-transparent border-sea-blue-700 border-[0.25vh] rounded-[0.5vh] w-[11%] h-[5.2%] right-[1.3%] bottom-[1.6%] cursor-pointer hover:bg-sea-blue-700/10 transition-colors"
+      class="pointer-events-auto absolute flex flex-row gap-[0.7vh] items-center justify-center bg-transparent border-primary-1 border-[0.25vh] rounded-[0.5vh] w-[11%] h-[5.2%] right-[1.3%] bottom-[1.6%] cursor-pointer hover:bg-sea-blue-700/10 transition-colors"
     >
       <svg
         class="w-[1.5vh] h-[1.5vh]"
@@ -85,9 +85,7 @@
           fill="#00548A"
         />
       </svg>
-      <div class="text-[1.35vh] font-semibold text-sea-blue-700">
-        開啟全螢幕
-      </div>
+      <div class="text-[1.35vh] font-semibold text-primary-1">開啟全螢幕</div>
     </div>
   </div>
 </template>

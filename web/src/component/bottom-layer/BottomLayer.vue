@@ -34,8 +34,9 @@ let camera: THREE.Camera;
 let renderer: THREE.WebGLRenderer;
 
 // 相機視差效果相關變數
-let targetCameraPosition: Vector3 = new Vector3(5, 13, 17.5);
-let lockedCameraPosition: Vector3 = new Vector3(5, 13, 17.5);
+// let targetCameraPosition: Vector3 = new Vector3(5, 13, 17.5);
+let targetCameraPosition: Vector3 = new Vector3(3, 7, 14);
+let lockedCameraPosition: Vector3 = new Vector3(3, 7, 14);
 let currentCameraOffset = { x: 0, y: 0 };
 const parallaxStrength = 0.5;
 const lockedParallaxStrength = 0.3;
@@ -112,7 +113,7 @@ const initThree = async () => {
 
   // 場景
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xf0f4f8);
+  scene.background = new THREE.Color(0xdff3e8);
 
   // 物件生成器
   let objectCreator = new ObjectCreator();
@@ -181,8 +182,8 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
   });
 
   const v3 = new Vector3(0.5, 0, 1);
-  const road = await objectCreator.createRoad(v3);
-  scene.add(road);
+  // const road = await objectCreator.createRoad(v3);
+  // scene.add(road);
 
   // 建立動畫控制器，並設定各組的實例數量和延遲
   animController = await objectCreator.createMultiAnimationGroup(v3, {

@@ -133,9 +133,7 @@ export class ObjectCreator {
       const loader = new FBXLoader();
       const textureLoader = new THREE.TextureLoader();
 
-      const baseTexture = textureLoader.load("./model/basetexture.jpg");
-      const floorTexture = textureLoader.load("./model/floortexture.jpg");
-      const unchangeTexture = textureLoader.load("./model/unchangetexture.jpg");
+      const baseTexture = textureLoader.load("./model/basicTexture.jpg");
 
       loader.load(
         "./model/Area_" + type + ".fbx",
@@ -150,16 +148,31 @@ export class ObjectCreator {
                 : [child.material];
 
               const newMaterials = materials.map((mat) => {
-                if (mat.name === "lambert1") {
+                if (mat.name === "texture_B") {
                   return new THREE.MeshStandardMaterial({
-                    color: 0xffffff,
-                    map: floorTexture,
+                    color: 0xe0e0e0,
+                    map: baseTexture,
                   });
                 }
 
-                if (mat.name === "lambert2") {
+                if (mat.name === "texture_C") {
                   return new THREE.MeshStandardMaterial({
-                    map: unchangeTexture,
+                    color: 0xbdbdbd,
+                    map: baseTexture,
+                  });
+                }
+
+                if (mat.name === "texture_D") {
+                  return new THREE.MeshStandardMaterial({
+                    color: 0x40b477,
+                    map: baseTexture,
+                  });
+                }
+
+                if (mat.name === "texture_E") {
+                  return new THREE.MeshStandardMaterial({
+                    color: 0x9fdabb,
+                    map: baseTexture,
                   });
                 }
 
@@ -493,7 +506,7 @@ export class ObjectCreator {
 
               const newMaterials = materials.map(() => {
                 return new THREE.MeshStandardMaterial({
-                  color: 0xaaffff,
+                  color: 0xdcaa24,
                   map: baseTexture,
                 });
               });
