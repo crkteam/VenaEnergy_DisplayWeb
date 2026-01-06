@@ -10,7 +10,7 @@
         class="absolute pointer-events-auto left-0 top-1/2 -translate-y-1/2 z-10 w-[3vh] h-[3vh] rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all shadow-md"
       >
         <svg
-          class="w-[1.5vh] h-[1.5vh] text-sky-blue-500"
+          class="w-[1.5vh] h-[1.5vh] text-primary-1"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -58,7 +58,7 @@
         class="absolute pointer-events-auto right-0 top-1/2 -translate-y-1/2 z-10 w-[3vh] h-[3vh] rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all shadow-md"
       >
         <svg
-          class="w-[1.5vh] h-[1.5vh] text-sky-blue-500"
+          class="w-[1.5vh] h-[1.5vh] text-primary-1"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute w-[18%] h-[7.1%] hover:ring-2 hover:ring-[#60D4E5] hover:bg-[#ffffff] hover:drop-shadow-[0_0_5vh_rgba(1,187,214,0.2)] bg-[#ffffff]/65 transition-all pointer-events-auto backdrop-blur-[0.25vh] rounded-[1.5vh] flex flex-row items-center justify-between ps-[1%] pe-[1%]"
+    class="absolute w-[18%] h-[7.1%] hover:ring-2 hover:ring-[#00CC4D] hover:bg-[#ffffff] hover:drop-shadow-[0_0_5vh_rgba(1,187,214,0.2)] bg-[#ffffff]/65 transition-all pointer-events-auto backdrop-blur-[0.25vh] rounded-[1.5vh] flex flex-row items-center justify-between ps-[1%] pe-[1%]"
     :style="{ left: `${left}%`, top: `${top}%` }"
   >
     <div class="flex flex-row items-center gap-[0.85vh]">
