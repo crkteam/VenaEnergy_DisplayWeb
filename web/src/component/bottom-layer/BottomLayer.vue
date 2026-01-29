@@ -3,7 +3,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, defineExpose, onMounted, onBeforeUnmount } from "vue";
+import {
+  ref,
+  defineEmits,
+  defineExpose,
+  onMounted,
+  onBeforeUnmount,
+} from "vue";
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
 import {
@@ -27,14 +33,23 @@ interface AreaConfig {
   focusLookAt: Vector3;
 }
 
+// 定義事件
+const emit = defineEmits<{
+  (e: "areaClick", areaType: string): void;
+}>();
+
 const container = ref<HTMLDivElement | null>(null);
 
 let scene: THREE.Scene;
 let camera: THREE.Camera;
 let renderer: THREE.WebGLRenderer;
 
+// 點擊偵測
+const raycaster = new THREE.Raycaster();
+const mouse = new Vector2();
+const clickableAreas: THREE.Object3D[] = [];
+
 // 相機視差效果相關變數
-// let targetCameraPosition: Vector3 = new Vector3(5, 13, 17.5);
 let targetCameraPosition: Vector3 = new Vector3(3, 7, 14);
 let lockedCameraPosition: Vector3 = new Vector3(3, 7, 14);
 let currentCameraOffset = { x: 0, y: 0 };
@@ -100,6 +115,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", onWindowResize);
   container.value?.removeEventListener("mousemove", onMouseMove);
+  container.value?.removeEventListener("click", onMouseClick);
   if (renderer) {
     renderer.dispose();
   }
@@ -144,6 +160,7 @@ const initThree = async () => {
   // 添加事件監聯
   window.addEventListener("resize", onWindowResize);
   container.value.addEventListener("mousemove", onMouseMove);
+  container.value.addEventListener("click", onMouseClick);
 };
 
 // 開場動畫
@@ -179,19 +196,18 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
 
   areas.forEach((area) => {
     scene.add(area);
+    clickableAreas.push(area);
   });
 
   const v3 = new Vector3(0.5, 0, 1);
-  // const road = await objectCreator.createRoad(v3);
-  // scene.add(road);
 
   // 建立動畫控制器，並設定各組的實例數量和延遲
   animController = await objectCreator.createMultiAnimationGroup(v3, {
-    A: { count: 7, delay: 0.25 }, // A 組 5 份，每份間隔 1 秒
-    B: { count: 7, delay: 0.25 }, // B 組 3 份，每份間隔 0.5 秒
-    C: { count: 2, delay: 0.25 }, // C 組 4 份，每份間隔 0.25 秒
-    D: { count: 2, delay: 0.25 }, // D 組 2 份，每份間隔 0.8 秒
-    X: { count: 7, delay: 0.2 }, // X 組 1 份（預設）
+    A: { count: 7, delay: 0.25 },
+    B: { count: 7, delay: 0.25 },
+    C: { count: 2, delay: 0.25 },
+    D: { count: 2, delay: 0.25 },
+    X: { count: 7, delay: 0.2 },
   });
 
   // 將所有物件加入場景
@@ -205,6 +221,28 @@ const loadAllAreas = async (objectCreator: ObjectCreator) => {
     D: 0,
     X: 0,
   });
+};
+
+// 點擊事件處理
+const onMouseClick = (event: MouseEvent) => {
+  if (!container.value || isIntroPlaying) return;
+
+  const rect = container.value.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(clickableAreas, true);
+
+  if (intersects.length > 0) {
+    let obj: THREE.Object3D | null = intersects[0].object;
+    while (obj && !obj.userData.type) {
+      obj = obj.parent;
+    }
+    if (obj?.userData.type) {
+      emit("areaClick", obj.userData.type);
+    }
+  }
 };
 
 const onMouseMove = (event: MouseEvent) => {
@@ -324,7 +362,6 @@ const getAllAnimationStates = (): Record<
   }
   return { A: "stop", B: "stop", C: "stop", D: "stop", X: "stop" };
 };
-
 // 恢復所有動畫（從暫停狀態繼續播放）
 const resumeAllAnimations = () => {
   if (animController) {

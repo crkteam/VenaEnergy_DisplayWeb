@@ -148,36 +148,8 @@ export class ObjectCreator {
                 : [child.material];
 
               const newMaterials = materials.map((mat) => {
-                if (mat.name === "texture_B") {
-                  return new THREE.MeshStandardMaterial({
-                    color: 0xe0e0e0,
-                    map: baseTexture,
-                  });
-                }
-
-                if (mat.name === "texture_C") {
-                  return new THREE.MeshStandardMaterial({
-                    color: 0xbdbdbd,
-                    map: baseTexture,
-                  });
-                }
-
-                if (mat.name === "texture_D") {
-                  return new THREE.MeshStandardMaterial({
-                    color: 0x40b477,
-                    map: baseTexture,
-                  });
-                }
-
-                if (mat.name === "texture_E") {
-                  return new THREE.MeshStandardMaterial({
-                    color: 0x9fdabb,
-                    map: baseTexture,
-                  });
-                }
-
                 return new THREE.MeshStandardMaterial({
-                  color: 0xffffff,
+                  color: this.getTextureColor(mat.name),
                   map: baseTexture,
                 });
               });
@@ -202,6 +174,37 @@ export class ObjectCreator {
         }
       );
     });
+  }
+
+  getTextureColor(matName: string): number {
+    switch (matName) {
+      case "texture_A":
+        return 0xe4ded2;
+      case "texture_B":
+        return 0xb9b3a5;
+      case "texture_C":
+        return 0xafb1bd;
+      case "texture_D":
+        return 0x3a3e59;
+      case "texture_E":
+        return 0x8d8d8d;
+      case "texture_F":
+        return 0x45714d;
+      case "texture_G":
+        return 0xededed;
+      case "texture_H":
+        return 0x496648;
+      case "texture_I":
+        return 0xaca592;
+      case "texture_J":
+        return 0xffffff;
+      case "texture_K":
+        return 0xd5deef;
+      case "texture_L":
+        return 0x2f544c;
+      default:
+        return 0xffffff;
+    }
   }
 
   createRoad(pos: THREE.Vector3): Promise<THREE.Group> {

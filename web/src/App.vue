@@ -4,6 +4,7 @@
     <BottomLayer
       ref="bottomLayerRef"
       class="absolute top-0 left-0 w-full h-full z-0"
+      @areaClick="(type: string) => handleLockCamera(type)"
     />
     <!-- Top -->
     <TopLayer
@@ -22,7 +23,7 @@ import TopLayer from "@/component/top-layer/TopLayer.vue";
 
 export default defineComponent({
   name: "App",
-  components: { TopLayer, BottomLayer },
+  components: { BottomLayer },
 });
 </script>
 
@@ -59,8 +60,6 @@ const isPaused = ref(false);
 
 const handleLockCamera = (areaType: string) => {
   cameraLockedType.value = areaType;
-  console.log(`UI 隱藏 - 鎖定到 ${areaType}`);
-
   if (bottomLayerRef.value) {
     bottomLayerRef.value.lockCameraToArea(areaType);
   }
@@ -68,8 +67,6 @@ const handleLockCamera = (areaType: string) => {
 
 const handleUnlockCamera = () => {
   cameraLockedType.value = "";
-  console.log("UI 顯示 - 相機解鎖");
-
   if (bottomLayerRef.value) {
     bottomLayerRef.value.unlockCamera();
   }
