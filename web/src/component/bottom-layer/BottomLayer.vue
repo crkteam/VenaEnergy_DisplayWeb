@@ -151,6 +151,9 @@ const initThree = async () => {
   // 打光
   objectCreator.addLight(scene);
 
+  // 網格地板
+  addGrid();
+
   // 批量創建所有 areas
   await loadAllAreas(objectCreator);
 
@@ -161,6 +164,18 @@ const initThree = async () => {
   window.addEventListener("resize", onWindowResize);
   container.value.addEventListener("mousemove", onMouseMove);
   container.value.addEventListener("click", onMouseClick);
+};
+
+const addGrid = () => {
+  // 水平地板網格
+  const gridHelper = new THREE.GridHelper(
+    50, // 大小
+    50, // 分割數
+    0x8ecdb0, // 主線顏色
+    0xb8e8d0 // 次線顏色
+  );
+  gridHelper.position.y = -0.01; // 稍微下移避免 z-fighting
+  scene.add(gridHelper);
 };
 
 // 開場動畫
