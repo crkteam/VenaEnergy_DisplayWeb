@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>VenaEnergy Display - 嵌入測試</title>
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        background: #1a1a2e;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        font-family: sans-serif;
+        color: white;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      h1 { font-size: 1.2rem; opacity: 0.7; }
+
+      /* 保持 1240:758 比例，自動縮放 */
+      .display-wrapper {
+        width: min(1240px, 95vw);
+        aspect-ratio: 1240 / 758;
+        position: relative;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      #ve-app {
+        width: 100%;
+        height: 100%;
+      }
+
+      .hint {
+        font-size: 0.8rem;
+        opacity: 0.5;
+        text-align: center;
+        line-height: 1.8;
+      }
+
+      kbd {
+        background: rgba(255,255,255,0.15);
+        border-radius: 4px;
+        padding: 1px 6px;
+        font-family: monospace;
+      }
+
+      #status {
+        font-size: 0.75rem;
+        padding: 6px 12px;
+        border-radius: 4px;
+        background: rgba(255,255,255,0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>VenaEnergy Display 嵌入測試</h1>
+    <div id="status">載入中...</div>
+
+    <!-- ✅ 組件容器 -->
+    <div class="display-wrapper">
+      <div id="ve-app"></div>
+    </div>
+
+    <p class="hint">
+      點擊 3D 場景的區域可鎖定鏡頭 ・
+      <kbd>0</kbd>–<kbd>4</kbd> 切換動畫組 ・
+      <kbd>S</kbd> 暫停 / 繼續
+    </p>
+
+    <!-- 載入 UMD bundle（把檔案放在同層 dist/ 資料夾） -->
+    <script src="./dist/vena-energy-display.umd.js"></script>
+
+    <script>
+      const status = document.getElementById('status');
+
+      // ---- 自動偵測 UMD export 並掛載 ----
+      // 你的 UMD 打包後，window.VenaEnergyDisplay 可能是以下三種之一：
+
+      const lib = window.VenaEnergyDisplay;
+
+      if (!lib) {
+        // 情況 0：UMD 直接在內部 auto-mount 了（entry 裡就 createApp().mount('#ve-app')）
+        // → 什麼都不用做，頁面已自動渲染
+        status.textContent = '✅ 已自動掛載（auto-mount 模式）';
+        status.style.color = '#6ee7b7';
+
+      } else if (typeof lib === 'function') {
+        // 情況 1：export default function mount(el) { ... }
+        lib('#ve-app');
+        status.textContent = '✅ 已掛載（function 模式）';
+        status.style.color = '#6ee7b7';
+
+      } else if (lib && typeof lib.mount === 'function') {
+        // 情況 2：export default { mount(el) { ... } }
+        lib.mount('#ve-app');
+        status.textContent = '✅ 已掛載（object.mount 模式）';
+        status.style.color = '#6ee7b7';
+
+      } else if (lib && typeof lib.default === 'function') {
+        // 情況 3：default export function（部分打包工具的包裝方式）
+        lib.default('#ve-app');
+        status.textContent = '✅ 已掛載（default 模式）';
+        status.style.color = '#6ee7b7';
+
+      } else {
+        // 無法辨識，印出 export 內容讓你判斷
+        console.log('VenaEnergyDisplay export:', lib);
+        status.textContent = '⚠️ 請打開 DevTools > Console 查看 export 格式';
+        status.style.color = '#fbbf24';
+      }
+    </script>
+
+    <!--
+    =====================================================
+    如果你想用 ESM 版本（.mjs），改用下面這段：
+    =====================================================
+    <script type="module">
+      import * as lib from './dist/vena-energy-display.mjs'
+      console.log('ESM export:', lib)
+
+      // 根據你的 entry 呼叫對應方法，例如：
+      // lib.default('#ve-app')
+      // lib.mount('#ve-app')
+    </script>
+    -->
+  </body>
+</html>
