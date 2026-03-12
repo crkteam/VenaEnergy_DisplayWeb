@@ -2,6 +2,7 @@ import { Camera } from "three/src/cameras/Camera";
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
 import { FBXLoader } from "three/examples/jsm/loaders/FBXLoader";
+import { BottomColorData } from "@/types/bottom";
 
 // 動畫組類型
 export type AnimationGroupType = "A" | "B" | "C" | "D" | "X";
@@ -78,6 +79,12 @@ const DEFAULT_CONFIG: AnimationGroupConfig = {
 };
 
 export class ObjectCreator {
+  bottomColorData: BottomColorData;
+
+  constructor(bottomColorData: BottomColorData) {
+    this.bottomColorData = bottomColorData;
+  }
+
   createCamera(view: Vector2, pos: Vector3): Camera {
     const aspect = view.x / view.y;
     const fov = 45;
@@ -177,31 +184,32 @@ export class ObjectCreator {
   }
 
   getTextureColor(matName: string): number {
+    const colorData = this.bottomColorData;
     switch (matName) {
       case "texture_A":
-        return 0xe4ded2;
+        return colorData.floorColor;
       case "texture_B":
-        return 0xb9b3a5;
+        return colorData.blockFloorColor;
       case "texture_C":
-        return 0xafb1bd;
+        return colorData.solar1Color;
       case "texture_D":
-        return 0x3a3e59;
+        return colorData.solar2Color;
       case "texture_E":
-        return 0x8d8d8d;
+        return colorData.electricColor;
       case "texture_F":
-        return 0x45714d;
+        return colorData.container1Color;
       case "texture_G":
-        return 0xededed;
+        return colorData.container2Color;
       case "texture_H":
-        return 0x496648;
+        return colorData.bigTransformerColor;
       case "texture_I":
-        return 0xaca592;
+        return colorData.bigBatteryColor;
       case "texture_J":
-        return 0xffffff;
+        return colorData.ammeterColor;
       case "texture_K":
-        return 0xd5deef;
+        return colorData.smallBatteryColor;
       case "texture_L":
-        return 0x2f544c;
+        return colorData.smallTransformerColor;
       default:
         return 0xffffff;
     }
@@ -509,7 +517,7 @@ export class ObjectCreator {
 
               const newMaterials = materials.map(() => {
                 return new THREE.MeshStandardMaterial({
-                  color: 0xdcaa24,
+                  color: this.bottomColorData.arrowColor,
                   map: baseTexture,
                 });
               });

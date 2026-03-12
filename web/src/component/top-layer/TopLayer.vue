@@ -1,6 +1,6 @@
 <template>
   <div class="relative">
-    <WeatherBlock />
+    <WeatherBlock :weather="weather" />
     <Transition
       enter-active-class="transition-all duration-300 ease-out"
       enter-from-class="opacity-0"
@@ -10,12 +10,13 @@
       leave-to-class="opacity-0"
     >
       <div v-if="isUnlocked">
-        <ShortDataBlock />
+        <ShortDataBlock :power="power?.mainData" />
         <TitleBlock
           :left="18"
           :top="30"
           title="GRID"
           :type="2"
+          :value="power?.gridValue"
           @click="handleTitleClick('A')"
         />
         <TitleBlock
@@ -23,6 +24,7 @@
           :top="70"
           title="PV"
           :type="1"
+          :value="power?.pv1Value"
           @click="handleTitleClick('B')"
         />
         <TitleBlock
@@ -30,6 +32,7 @@
           :top="50"
           title="PV"
           :type="1"
+          :value="power?.pv2Value"
           @click="handleTitleClick('C')"
         />
         <TitleBlock
@@ -37,9 +40,14 @@
           :top="82"
           title="ESS"
           :type="3"
+          :value="power?.essValue"
           @click="handleTitleClick('D')"
         />
-        <ChartBlock @toggle="toggleChart" :isExpanded="isChartExpanded" />
+        <ChartBlock
+          :chart="chart"
+          @toggle="toggleChart"
+          :isExpanded="isChartExpanded"
+        />
       </div>
     </Transition>
     <Transition
@@ -51,7 +59,10 @@
       leave-to-class="opacity-0"
     >
       <div v-if="!isUnlocked">
-        <DataBlock :area-type="props.cameraLockedType" />
+        <DataBlock
+          :area-type="props.cameraLockedType"
+          :power-detail="getDetailData()"
+        />
         <!-- 返回按鈕 -->
         <div
           @click="handleBackClick"
@@ -92,14 +103,20 @@
 
 <script setup lang="ts">
 import { defineProps, defineEmits, computed, ref } from "vue";
-import WeatherBlock from "@/component/top-layer/blocks/WeatherBlock.vue";
+import WeatherBlock from "@/component/top-layer/blocks/weather-block/WeatherBlock.vue";
 import ShortDataBlock from "@/component/top-layer/blocks/short-data-block/ShortDataBlock.vue";
 import TitleBlock from "@/component/top-layer/blocks/title-block/TitleBlock.vue";
 import DataBlock from "@/component/top-layer/blocks/data-block/DataBlock.vue";
 import ChartBlock from "@/component/top-layer/blocks/chart-block/ChartBlock.vue";
+import { WeatherData } from "@/types/weather";
+import { PowerData } from "@/types/power";
+import { ChartData } from "@/types/chart";
 
 const props = defineProps<{
   cameraLockedType: string;
+  weather?: WeatherData;
+  power?: PowerData;
+  chart?: ChartData;
 }>();
 
 const emit = defineEmits<{
@@ -124,5 +141,20 @@ const handleTitleClick = (areaType: string) => {
 // 返回按鈕點擊處理
 const handleBackClick = () => {
   emit("unlockCamera");
+};
+
+const getDetailData = () => {
+  switch (props.cameraLockedType) {
+    case "A":
+      return props.power?.gridData;
+    case "B":
+      return props.power?.pv1Data;
+    case "C":
+      return props.power?.pv2Data;
+    case "D":
+      return props.power?.essData;
+    default:
+      return null;
+  }
 };
 </script>

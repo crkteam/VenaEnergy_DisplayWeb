@@ -12,7 +12,7 @@
       <div class="text-black/65 text-[1.6vh]">{{ title }}</div>
     </div>
     <div class="flex flex-row items-center gap-[0.5vh]">
-      <div class="font-bold text-[2.15vh] text-black/80">287</div>
+      <div class="font-bold text-[2.15vh] text-black/80">{{ value }}</div>
       <div class="text-[1.35vh] text-black/40">(kW)</div>
     </div>
   </div>
@@ -26,5 +26,6 @@ defineProps<{
   top: number;
   title: string;
   type: number;
+  value: number;
 }>();
 </script>

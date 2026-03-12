@@ -9,6 +9,7 @@ import {
   defineExpose,
   onMounted,
   onBeforeUnmount,
+  defineProps,
 } from "vue";
 import * as THREE from "three";
 import { Vector2, Vector3 } from "three";
@@ -19,6 +20,11 @@ import {
   AnimationState,
 } from "@/component/bottom-layer/object-creator";
 import gsap from "gsap";
+import { BottomColorData } from "@/types/bottom";
+
+const props = defineProps<{
+  bottomColorData: BottomColorData;
+}>();
 
 // 定義類型
 interface AreaCameraConfig {
@@ -129,10 +135,10 @@ const initThree = async () => {
 
   // 場景
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xdff3e8);
+  scene.background = new THREE.Color(props.bottomColorData.bgColor);
 
   // 物件生成器
-  let objectCreator = new ObjectCreator();
+  let objectCreator = new ObjectCreator(props.bottomColorData);
   let view = new Vector2(
     container.value.clientWidth,
     container.value.clientHeight
@@ -171,8 +177,8 @@ const addGrid = () => {
   const gridHelper = new THREE.GridHelper(
     50, // 大小
     50, // 分割數
-    0x8ecdb0, // 主線顏色
-    0xb8e8d0 // 次線顏色
+    props.bottomColorData.gridPrimaryColor, // 主線顏色
+    props.bottomColorData.gridSecondaryColor // 次線顏色
   );
   gridHelper.position.y = -0.01; // 稍微下移避免 z-fighting
   scene.add(gridHelper);
@@ -181,7 +187,6 @@ const addGrid = () => {
 // 開場動畫
 const playIntroAnimation = () => {
   isIntroPlaying = true;
-
   gsap.to(camera.position, {
     x: targetCameraPosition.x,
     y: targetCameraPosition.y,

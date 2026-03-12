@@ -2,7 +2,7 @@
   <div class="p-[0.5vh] flex flex-col justify-between">
     <div class="flex items-center gap-[0.5vh]">
       <span class="text-[1.85vh] font-bold tracking-wide text-black/65">{{
-        value.toString()
+        value
       }}</span>
       <span class="text-[1.2vh] text-black/40">(MWp)</span>
     </div>

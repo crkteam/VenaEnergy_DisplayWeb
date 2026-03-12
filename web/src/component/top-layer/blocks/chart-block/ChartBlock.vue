@@ -117,8 +117,10 @@
 <script setup lang="ts">
 import { ref, computed, defineProps, defineEmits } from "vue";
 import EyeToggle from "@/component/top-layer/blocks/chart-block/component/EyeToggle.vue";
+import { ChartData } from "@/types/chart";
 
-defineProps<{
+const props = defineProps<{
+  chart: ChartData;
   bottom: number;
   isExpanded: boolean;
 }>();
@@ -139,42 +141,13 @@ const dataVisibility = ref({
 
 // 日刻度數據
 const dayData = {
-  labels: [
-    "01",
-    "02",
-    "03",
-    "04",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "18",
-    "19",
-    "20",
-    "21",
-    "22",
-  ],
-  newPvGeneration: [
-    25, 35, 20, 15, 40, 30, 20, 25, 15, 20, 25, 30, 25, 25, 20, 25, 25, 30, 30,
-    35, 30, 35,
-  ],
-  pvGeneration: [
-    15, 25, 15, 15, 25, 25, 15, 15, 15, 15, 15, 25, 25, 15, 15, 15, 20, 20, 25,
-    25, 25, 25,
-  ],
-  storageGeneration: [
-    10, 15, 10, 10, 15, 15, 10, 10, 10, 10, 10, 15, 15, 10, 10, 10, 15, 15, 15,
-    15, 15, 15,
-  ],
+  labels: Array.from(
+    { length: props.chart.monthNewPvData.length },
+    (_, i) => i + 1
+  ),
+  newPvGeneration: props.chart.monthNewPvData,
+  pvGeneration: props.chart.monthPvData,
+  storageGeneration: props.chart.monthStoreData,
 };
 
 // 年刻度數據
@@ -193,11 +166,9 @@ const yearData = {
     "11月",
     "12月",
   ],
-  newPvGeneration: [550, 620, 680, 720, 800, 850, 900, 880, 820, 750, 650, 580],
-  pvGeneration: [350, 420, 480, 520, 600, 650, 700, 680, 620, 550, 450, 380],
-  storageGeneration: [
-    250, 320, 380, 420, 500, 550, 600, 580, 520, 450, 350, 280,
-  ],
+  newPvGeneration: props.chart.yearNewPvData,
+  pvGeneration: props.chart.yearPvData,
+  storageGeneration: props.chart.yearStoreData,
 };
 
 // 計算圖表配置
