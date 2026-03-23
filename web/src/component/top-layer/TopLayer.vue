@@ -84,6 +84,7 @@
     </Transition>
     <!-- 全螢幕按鈕 -->
     <div
+      @click="emit('toggleFullscreen')"
       class="pointer-events-auto absolute flex flex-row gap-[0.7vh] items-center justify-center bg-transparent hover:bg-white/75 border-primary-1 border-[0.25vh] rounded-[0.5vh] w-[11%] h-[5.2%] right-[1.3%] bottom-[1.6%] cursor-pointer hover:bg-sea-blue-700/10 transition-colors"
     >
       <svg
@@ -122,6 +123,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   unlockCamera: [];
   lockCamera: [areaType: string];
+  toggleFullscreen: [];
 }>();
 
 const isUnlocked = computed(() => props.cameraLockedType === "");

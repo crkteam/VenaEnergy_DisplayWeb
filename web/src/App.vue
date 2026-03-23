@@ -14,6 +14,7 @@
       :chart="chart"
       @unlock-camera="handleUnlockCamera"
       @lock-camera="handleLockCamera"
+      @toggle-fullscreen="handleToggleFullscreen"
     />
   </div>
 </template>
@@ -164,6 +165,16 @@ const animationInitialStates: Partial<
   X: 0,
 };
 
+const handleToggleFullscreen = () => {
+  const el = document.getElementById("ve-app");
+  if (!el) return;
+
+  if (!document.fullscreenElement) {
+    el.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+};
 // =========================================
 
 const bottomLayerRef = ref<InstanceType<typeof BottomLayer> | null>(null);
