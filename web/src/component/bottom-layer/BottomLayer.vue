@@ -75,6 +75,14 @@ const introLookAt: Vector3 = new Vector3(0, 5, 2.5);
 // 動畫控制器
 let animController: MultiAnimationController | null = null;
 
+// 在既有變數區塊後，加入 hover 相關狀態
+let hoveredArea: THREE.Object3D | null = null;
+const hoverLiftAmount = 0.3; // 抬高的 Y 軸量
+const hoverDuration = 0.25; // 動畫時間
+
+// 地板 mesh（用於點擊偵測）
+let floorMesh: THREE.Mesh;
+
 // 統一配置所有 area 的資訊
 const areaConfigs: AreaConfig[] = [
   {
@@ -182,6 +190,18 @@ const addGrid = () => {
   );
   gridHelper.position.y = -0.01; // 稍微下移避免 z-fighting
   scene.add(gridHelper);
+
+  // ✅ 新增：透明地板 Mesh，用於 raycast 偵測點擊地板
+  const floorGeo = new THREE.PlaneGeometry(50, 50);
+  const floorMat = new THREE.MeshBasicMaterial({
+    visible: false, // 不可見但參與 raycast
+    side: THREE.DoubleSide,
+  });
+  floorMesh = new THREE.Mesh(floorGeo, floorMat);
+  floorMesh.rotation.x = -Math.PI / 2;
+  floorMesh.position.y = 0;
+  floorMesh.name = "floor";
+  scene.add(floorMesh);
 };
 
 // 開場動畫
@@ -252,6 +272,15 @@ const onMouseClick = (event: MouseEvent) => {
   mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
   raycaster.setFromCamera(mouse, camera);
+
+  if (isLocked) {
+    const floorIntersects = raycaster.intersectObject(floorMesh);
+    if (floorIntersects.length > 0) {
+      emit("areaClick", "unlock"); // 通知外層解鎖
+      return;
+    }
+  }
+
   const intersects = raycaster.intersectObjects(clickableAreas, true);
 
   if (intersects.length > 0) {
@@ -266,18 +295,70 @@ const onMouseClick = (event: MouseEvent) => {
 };
 
 const onMouseMove = (event: MouseEvent) => {
-  if (!container.value) return;
-
-  if (isIntroPlaying) return;
+  if (!container.value || isIntroPlaying) return;
 
   const rect = container.value.getBoundingClientRect();
   const mouseX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
   const mouseY = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-  const strength = isLocked ? lockedParallaxStrength : parallaxStrength;
+  // ✅ 同步更新 module-level 的 mouse，raycaster 才能用
+  mouse.x = mouseX;
+  mouse.y = mouseY;
 
+  // 視差效果
+  const strength = isLocked ? lockedParallaxStrength : parallaxStrength;
   currentCameraOffset.x = mouseX * strength;
   currentCameraOffset.y = mouseY * strength;
+
+  if (!isLocked) {
+    raycaster.setFromCamera(mouse, camera); // ✅ 現在 mouse 是正確的值
+    const intersects = raycaster.intersectObjects(clickableAreas, true);
+
+    let newHovered: THREE.Object3D | null = null;
+
+    if (intersects.length > 0) {
+      let obj: THREE.Object3D | null = intersects[0].object;
+      while (obj && !obj.userData.type) {
+        obj = obj.parent;
+      }
+      if (obj?.userData.type) {
+        newHovered = obj;
+      }
+    }
+
+    if (newHovered !== hoveredArea) {
+      if (hoveredArea) {
+        gsap.to(hoveredArea.position, {
+          y: 0,
+          duration: hoverDuration,
+          ease: "power2.out",
+        });
+      }
+
+      if (newHovered) {
+        gsap.to(newHovered.position, {
+          y: hoverLiftAmount,
+          duration: hoverDuration,
+          ease: "power2.out",
+        });
+      }
+
+      hoveredArea = newHovered;
+
+      if (container.value) {
+        container.value.style.cursor = newHovered ? "pointer" : "default";
+      }
+    }
+  } else {
+    if (hoveredArea) {
+      gsap.to(hoveredArea.position, {
+        y: 0,
+        duration: hoverDuration,
+        ease: "power2.out",
+      });
+      hoveredArea = null;
+    }
+  }
 };
 
 // 鎖定相機到指定 area（由外部呼叫）

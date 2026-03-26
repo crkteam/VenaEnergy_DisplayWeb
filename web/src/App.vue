@@ -4,7 +4,7 @@
       ref="bottomLayerRef"
       class="absolute top-0 left-0 w-full h-full z-0"
       :bottom-color-data="bottomColorData"
-      @areaClick="(type: string) => handleLockCamera(type)"
+      @areaClick="(type: string) => type === 'unlock' ? handleUnlockCamera() : handleLockCamera(type)"
     />
     <TopLayer
       class="absolute top-0 left-0 w-full h-full z-10 pointer-events-none"
